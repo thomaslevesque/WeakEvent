@@ -1,7 +1,5 @@
 # WeakEvent
 
-Reusable weak event implementation
-
 Events are the most common source of memory leaks in .NET apps: the lifetime of the subscriber is extended to that of the publisher,
 unless you unsubscribe from the event. That's because the publisher maintains a strong reference to the subscriber, via the delegate,
 which prevents garbage collection of the subscriber.
@@ -54,9 +52,9 @@ delegates. Basically, an open-instance delegate is a delegate that is bound to a
 signature of an open-instance delegate is the same as the equivalent normal delegate, with an extra parameter for the target (the
 `this` parameter). An example will make things clearer:
 
-    public delegate void FooEventHandler    (               object sender, FooEventArgs e);
+    public delegate void     FooEventHandler(               object sender, FooEventArgs e);
     public delegate void OpenFooEventHandler(object target, object sender, FooEventArgs e);
 
 So, when someone subscribes to our weak event by passing a normal delegate, we create a weak delegate that wraps a weak reference to
 the target, and an open-instance delegate that is bound to the original delegate's method. When we need to invoke the weak delegate,
-we check if the target is still alive, and if it is, we invoke the open-instance delegate on the target.
+we check if the target is still alive, and if it is, we invoke the open-instance delegate on it.
