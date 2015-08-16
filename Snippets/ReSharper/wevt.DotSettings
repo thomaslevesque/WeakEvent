@@ -1,0 +1,25 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Shortcut/@EntryValue">wevt</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Description/@EntryValue">Weak event</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Text/@EntryValue">private readonly WeakEvent.WeakEventSource&lt;$argsType$&gt; _$sourceName$Source = new WeakEvent.WeakEventSource&lt;$argsType$&gt;();&#xD;
+public event System.EventHandler&lt;$argsType$&gt; $eventName$&#xD;
+{&#xD;
+    add { _$sourceName$Source.Subscribe(value); }&#xD;
+    remove { _$sourceName$Source.Unsubscribe(value); }&#xD;
+}</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">5.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=eventName/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=eventName/Expression/@EntryValue">constant("MyEvent")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=eventName/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=argsType/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=argsType/Expression/@EntryValue">constant("EventArgs")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=argsType/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=sourceName/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=sourceName/Expression/@EntryValue">decapitalize(eventName)</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=1202840C66FAE44891B765B9840C84E0/Field/=sourceName/Order/@EntryValue">2</s:Int64></wpf:ResourceDictionary>

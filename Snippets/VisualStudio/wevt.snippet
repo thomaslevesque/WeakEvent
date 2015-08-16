@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<CodeSnippets  xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>wevt</Title>
+      <Shortcut>wevt</Shortcut>
+      <Description>Code snippet for a weak event</Description>
+      <Author>Thomas Levesque</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>argsType</ID>
+          <ToolTip>Event argument type</ToolTip>
+          <Default>EventArgs</Default>
+        </Literal>
+        <Literal>
+          <ID>event</ID>
+          <ToolTip>Event name</ToolTip>
+          <Default>MyEvent</Default>
+        </Literal>
+        <Literal>
+          <ID>field</ID>
+          <ToolTip>Name of the field holding the weak event source</ToolTip>
+          <Default>_myEvent</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="csharp">
+        <![CDATA[private readonly WeakEventSource<$argsType$> $field$ = new WeakEventSource<EventHandler>();
+        public event EventHandler<$argsType$> $event$
+        {
+            add { $field$.Subscribe(value); }
+            remove { $field$.Unsubscribe(value); }
+        }
+    $end$]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
