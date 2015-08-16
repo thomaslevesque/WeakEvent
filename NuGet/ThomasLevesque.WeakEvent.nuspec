@@ -3,15 +3,16 @@
    <metadata>
       <!-- Required metadata -->
       <id>ThomasLevesque.WeakEvent</id>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
       <title>WeakEvent</title>
       <authors>Thomas Levesque</authors>
       <description>A generic weak event implementation.</description>
       <owners>Thomas Levesque</owners>
       <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
       <projectUrl>https://github.com/thomaslevesque/WeakEvent/</projectUrl>
-      <tags>string</tags>
+      <tags>weak event</tags>
      <releaseNotes xml:space="preserve">
+- 1.0.1: fixed wrong tag in NuGet package
 - 1.0.0: initial release
      </releaseNotes>
       <dependencies>
