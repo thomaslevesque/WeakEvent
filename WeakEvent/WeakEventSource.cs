@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -25,9 +26,14 @@ namespace WeakEvent
 
         public void Subscribe(EventHandler<TEventArgs> handler)
         {
+            var weakHandlers = handler
+                .GetInvocationList()
+                .Select(d => new WeakDelegate(d))
+                .ToList();
+
             lock (_handlers)
             {
-                _handlers.Add(new WeakDelegate(handler));
+                _handlers.AddRange(weakHandlers);
             }
         }
 
