@@ -1,5 +1,7 @@
 # WeakEvent
 
+Available on NuGet: [ThomasLevesque.WeakEvent](https://www.nuget.org/packages/ThomasLevesque.WeakEvent/)
+
 Events are the most common source of memory leaks in .NET apps: the lifetime of the subscriber is extended to that of the publisher,
 unless you unsubscribe from the event. That's because the publisher maintains a strong reference to the subscriber, via the delegate,
 which prevents garbage collection of the subscriber.
