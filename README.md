@@ -14,23 +14,29 @@ from being garbage collected.
 
 Instead of declaring your event like this:
 
-    public event EventHandler<MyEventArgs> MyEvent;
+```csharp
+public event EventHandler<MyEventArgs> MyEvent;
+```
 
 Declare it like this:
 
-    private readonly WeakEventSource<MyEventArgs> _myEventSource = new WeakEventSource<MyEventArgs>();
-    public event EventHandler<MyEventArgs> MyEvent
-    {
-        add { _myEventSource.Subscribe(value); }
-        remove { _myEventSource.Unsubscribe(value); }
-    }
+```csharp
+private readonly WeakEventSource<MyEventArgs> _myEventSource = new WeakEventSource<MyEventArgs>();
+public event EventHandler<MyEventArgs> MyEvent
+{
+    add { _myEventSource.Subscribe(value); }
+    remove { _myEventSource.Unsubscribe(value); }
+}
+```
 
 And raise it like this:
 
-    private void OnMyEvent(MyEventArgs e)
-    {
-        _myEventSource.Raise(this, e);
-    }
+```csharp
+private void OnMyEvent(MyEventArgs e)
+{
+    _myEventSource.Raise(this, e);
+}
+```
 
 That's it, you have a weak event! Client code can subscribe to it as usual, this is completely transparent from the subscriber's
 point of view.
@@ -54,8 +60,10 @@ delegates. Basically, an open-instance delegate is a delegate that is bound to a
 signature of an open-instance delegate is the same as the equivalent normal delegate, with an extra parameter for the target (the
 `this` parameter). An example will make things clearer:
 
-    public delegate void     FooEventHandler(               object sender, FooEventArgs e);
-    public delegate void OpenFooEventHandler(object target, object sender, FooEventArgs e);
+```csharp
+public delegate void     FooEventHandler(               object sender, FooEventArgs e);
+public delegate void OpenFooEventHandler(object target, object sender, FooEventArgs e);
+```
 
 So, when someone subscribes to our weak event by passing a normal delegate, we create a weak delegate that wraps a weak reference to
 the target, and an open-instance delegate that is bound to the original delegate's method. When we need to invoke the weak delegate,
