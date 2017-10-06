@@ -4,6 +4,7 @@ var target = Argument<string>("target", "Default");
 var configuration = Argument<string>("configuration", "Release");
 
 var projectName = "WeakEvent";
+var solution = $"{projectName}.sln";
 var libraryProject = $"./{projectName}/{projectName}.csproj";
 var testProject = $"./{projectName}.Tests/{projectName}.Tests.csproj";
 var outDir = $"./{projectName}/bin/{configuration}";
@@ -14,15 +15,13 @@ Task("Clean")
     CleanDirectory(outDir);
 });
 
-Task("Restore").Does(DotNetCoreRestore);
+Task("Restore")
+    .Does(() => RunMSBuildTarget(solution, "Restore"));
 
 Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("Restore")
-    .Does(() =>
-{
-    DotNetCoreBuild(".", new DotNetCoreBuildSettings { Configuration = configuration });
-});
+    .Does(() => RunMSBuildTarget(solution, "Build"));
 
 Task("Test")
     .IsDependentOn("Build")
@@ -33,10 +32,7 @@ Task("Test")
 
 Task("Pack")
     .IsDependentOn("Test")
-    .Does(() =>
-{
-    DotNetCorePack(libraryProject, new DotNetCorePackSettings { Configuration = configuration });
-});
+    .Does(() => RunMSBuildTarget(libraryProject, "Pack"));
 
 Task("Push")
     .IsDependentOn("Pack")
@@ -50,5 +46,14 @@ Task("Push")
 
 Task("Default")
     .IsDependentOn("Pack");
+
+void RunMSBuildTarget(string projectOrSolution, string target)
+{
+    MSBuild(projectOrSolution, new MSBuildSettings
+    {
+        Targets = { target },
+        Configuration = configuration
+    });
+}
 
 RunTarget(target);
