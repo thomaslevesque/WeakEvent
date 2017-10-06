@@ -1,4 +1,4 @@
-#if !NETSTANDARD
+#if NET40 || NET35
 using System;
 using System.Reflection;
 

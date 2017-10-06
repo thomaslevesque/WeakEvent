@@ -8,9 +8,7 @@ using System.Reflection;
 namespace WeakEvent
 {
     public class WeakEventSource<TEventArgs>
-#if NET40
         where TEventArgs : EventArgs
-#endif
     {
         private readonly List<WeakDelegate> _handlers;
 
