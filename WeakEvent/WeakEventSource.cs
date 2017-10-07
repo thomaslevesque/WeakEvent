@@ -23,7 +23,12 @@ namespace WeakEvent
         {
             lock (_handlers)
             {
-                _handlers.RemoveAll(h => !h.Invoke(sender, e));
+                var failedHandlers = _handlers
+                    .ToArray()
+                    .Where(h => !h.Invoke(sender, e));
+
+                foreach (var h in failedHandlers)
+                    _handlers.Remove(h);
             }
         }
 
