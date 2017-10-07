@@ -111,6 +111,29 @@ namespace WeakEvent.Tests
             GC.KeepAlive(sub1);
         }
 
+        [Fact]
+        public void Reentrant_Subscribers_Dont_Fire_Immediately()
+        {
+            var pub = new Publisher();
+            var calledSubscribers = new List<int>();
+            var sub1 = new InstanceSubscriber(1, pub, i =>
+            {
+                calledSubscribers.Add(i);
+
+                // This listener should not receive the event during the first round of notifications
+                var sub2 = new InstanceSubscriber(i + 1, pub, calledSubscribers.Add);
+
+                // Make sure subscribers are not collected before the end of the test
+                GC.KeepAlive(sub2);
+            });
+
+            pub.Raise();
+            calledSubscribers.Should().Equal(1);
+
+            // Make sure subscribers are not collected before the end of the test
+            GC.KeepAlive(sub1);
+        }
+
         #region Test subjects
 
         class Publisher
