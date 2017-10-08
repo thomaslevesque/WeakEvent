@@ -1,8 +1,5 @@
 #if NET40 || NET35
-using System;
-using System.Reflection;
-
-namespace WeakEvent
+namespace System.Reflection
 {
     internal static class CompatibilityExtensions
     {

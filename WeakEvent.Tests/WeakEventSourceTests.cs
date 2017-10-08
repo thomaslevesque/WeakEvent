@@ -141,8 +141,8 @@ namespace WeakEvent.Tests
             private readonly WeakEventSource<EventArgs> _fooEventSource = new WeakEventSource<EventArgs>();
             public event EventHandler<EventArgs> Foo
             {
-                add { _fooEventSource.Subscribe(value); }
-                remove { _fooEventSource.Unsubscribe(value); }
+                add => _fooEventSource.Subscribe(value);
+                remove => _fooEventSource.Unsubscribe(value);
             }
 
             public void Raise()
