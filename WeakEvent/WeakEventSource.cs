@@ -1,12 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
-#if !NET35
-using System.Collections.Concurrent;
-#endif
 
 namespace WeakEvent
 {
@@ -65,7 +62,7 @@ namespace WeakEvent
             private delegate void OpenEventHandler(object target, object sender, TEventArgs e);
 
             // ReSharper disable once StaticMemberInGenericType (by design)
-            private static readonly ConcurrentDictionary<MethodInfo, OpenEventHandler> _openHandlerCache =
+            private static readonly ConcurrentDictionary<MethodInfo, OpenEventHandler> OpenHandlerCache =
                 new ConcurrentDictionary<MethodInfo, OpenEventHandler>();
 
             private static OpenEventHandler CreateOpenHandler(MethodInfo method)
@@ -105,7 +102,7 @@ namespace WeakEvent
             {
                 _weakTarget = handler.Target != null ? new WeakReference(handler.Target) : null;
                 _method = handler.GetMethodInfo();
-                _openHandler = _openHandlerCache.GetOrAdd(_method, CreateOpenHandler);
+                _openHandler = OpenHandlerCache.GetOrAdd(_method, CreateOpenHandler);
             }
 
             public bool Invoke(object sender, TEventArgs e)

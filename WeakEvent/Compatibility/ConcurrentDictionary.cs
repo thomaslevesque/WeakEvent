@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WeakEvent
+namespace System.Collections.Concurrent
 {
     internal class ConcurrentDictionary<TKey, TValue>
     {
