@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>netstandard1.1;net40;net45</TargetFrameworks>
+        <TargetFrameworks>netstandard1.1;net35;net40;net45</TargetFrameworks>
         <NeutralLanguage>en</NeutralLanguage>
         <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
     </PropertyGroup>
@@ -19,6 +19,10 @@
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.1'">
         <DefineConstants>$(DefineConstants);NETSTANDARD</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net35'">
+        <DefineConstants>$(DefineConstants);NET35</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">

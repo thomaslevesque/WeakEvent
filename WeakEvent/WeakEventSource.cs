@@ -1,14 +1,17 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
+#if !NET35
+using System.Collections.Concurrent;
+#endif
+
 namespace WeakEvent
 {
     public class WeakEventSource<TEventArgs>
-#if NET40
+#if NET40 || NET35
         where TEventArgs : EventArgs
 #endif
     {
@@ -57,7 +60,7 @@ namespace WeakEvent
 
         class WeakDelegate
         {
-            #region Open handler generation and cache
+#region Open handler generation and cache
 
             private delegate void OpenEventHandler(object target, object sender, TEventArgs e);
 
@@ -92,7 +95,7 @@ namespace WeakEvent
                 }
             }
 
-            #endregion
+#endregion
 
             private readonly WeakReference _weakTarget;
             private readonly MethodInfo _method;
