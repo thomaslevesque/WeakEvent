@@ -134,6 +134,24 @@ namespace WeakEvent.Tests
             GC.KeepAlive(sub1);
         }
 
+        [Fact]
+        public void Multicast_Handlers_Are_Correctly_Unsubscribed()
+        {
+            var pub = new Publisher();
+            var calledSubscribers = new List<int>();
+            EventHandler<EventArgs> handler = null;
+            handler += (sender, e) => calledSubscribers.Add(1);
+            handler += (sender, e) => calledSubscribers.Add(2);
+
+            pub.Foo += handler;
+            pub.Raise();
+
+            pub.Foo -= handler;
+            pub.Raise();
+
+            calledSubscribers.Should().Equal(1, 2);
+        }
+
         #region Test subjects
 
         class Publisher
