@@ -47,11 +47,16 @@ namespace WeakEvent
 
         public void Unsubscribe(EventHandler<TEventArgs> handler)
         {
+            var singleHandlers = handler
+                .GetInvocationList()
+                .Cast<EventHandler<TEventArgs>>();
+
             lock (_handlers)
             {
-                int index = _handlers.FindIndex(h => h.IsMatch(handler));
-                if (index >= 0)
-                    _handlers.RemoveAt(index);
+                foreach (var singleHandler in singleHandlers)
+                {
+                    _handlers.RemoveAll(h => h.IsMatch(singleHandler));
+                }
             }
         }
 
