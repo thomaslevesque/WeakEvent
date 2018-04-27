@@ -155,65 +155,65 @@ namespace WeakEvent
 
         private class DelegateCollection : IEnumerable<WeakDelegate>
         {
-            private List<WeakDelegate> Delegates { get; set; }
+            private List<WeakDelegate> _delegates;
 
-            private Dictionary<long, List<int>> Index { get; set; }
+            private Dictionary<long, List<int>> _index;
 
-            private int DeletedCount { get; set; }
+            private int _deletedCount;
 
             public DelegateCollection()
             {
-                Delegates = new List<WeakDelegate>();
-                Index = new Dictionary<long, List<int>>();
+                _delegates = new List<WeakDelegate>();
+                _index = new Dictionary<long, List<int>>();
             }
 
             public void Add(EventHandler<TEventArgs> singleHandler)
             {
-                Delegates.Add(new WeakDelegate(singleHandler));
-                var index = Delegates.Count - 1;
+                _delegates.Add(new WeakDelegate(singleHandler));
+                var index = _delegates.Count - 1;
                 AddToIndex(singleHandler, index);
             }
 
             public void Invalidate(int index)
             {
-                Delegates[index] = null;
-                DeletedCount++;
+                _delegates[index] = null;
+                _deletedCount++;
             }
 
             internal void Remove(EventHandler<TEventArgs> singleHandler)
             {
                 var hashCode = WeakDelegate.GetHashCode(singleHandler);
 
-                if (!Index.ContainsKey(hashCode))
+                if (!_index.ContainsKey(hashCode))
                     return;
 
-                var indices = Index[hashCode];
+                var indices = _index[hashCode];
                 for (int i = indices.Count - 1; i >= 0; i--)
                 {
                     int index = indices[i];
-                    if (Delegates[index] != null &&
-                        Delegates[index].IsMatch(singleHandler))
+                    if (_delegates[index] != null &&
+                        _delegates[index].IsMatch(singleHandler))
                     {
-                        Delegates[index] = null;
-                        DeletedCount++;
+                        _delegates[index] = null;
+                        _deletedCount++;
                         indices.Remove(i);
                     }
                 }
 
                 if (indices.Count == 0)
-                    Index.Remove(hashCode);
+                    _index.Remove(hashCode);
             }
 
             public void CollectDeleted()
             {
-                if (DeletedCount < Delegates.Count / 4)
+                if (_deletedCount < _delegates.Count / 4)
                     return;
 
                 Dictionary<int, int> newIndices = new Dictionary<int, int>();
                 var newDelegates = new List<WeakDelegate>();
                 int oldIndex = 0;
                 int newIndex = 0;
-                foreach (var item in Delegates)
+                foreach (var item in _delegates)
                 {
                     if (item != null)
                     {
@@ -225,38 +225,38 @@ namespace WeakEvent
                     oldIndex++;
                 }
 
-                Delegates = newDelegates;
+                _delegates = newDelegates;
 
-                var hashCodes = Index.Keys.ToList();
+                var hashCodes = _index.Keys.ToList();
                 foreach (var hashCode in hashCodes)
                 {
-                    Index[hashCode] = Index[hashCode]
+                    _index[hashCode] = _index[hashCode]
                         .Where(oi => newIndices.ContainsKey(oi))
                         .Select(oi => newIndices[oi]).ToList();
                 }
 
-                DeletedCount = 0;
+                _deletedCount = 0;
             }
 
             private void AddToIndex(EventHandler<TEventArgs> singleHandler, int index)
             {
                 var hashCode = WeakDelegate.GetHashCode(singleHandler);
-                if (Index.ContainsKey(hashCode))
-                    Index[hashCode].Add(index);
+                if (_index.ContainsKey(hashCode))
+                    _index[hashCode].Add(index);
                 else
-                    Index.Add(hashCode, new List<int> { index });
+                    _index.Add(hashCode, new List<int> { index });
             }
 
             WeakDelegate this[int index]
             {
-                get { return Delegates[index]; }
+                get { return _delegates[index]; }
             }
 
             /// <summary>Returns an enumerator that iterates through the collection.</summary>
             /// <returns>A <see cref="T:System.Collections.Generic.IEnumerator`1" /> that can be used to iterate through the collection.</returns>
             public IEnumerator<WeakDelegate> GetEnumerator()
             {
-                return Delegates.GetEnumerator();
+                return _delegates.GetEnumerator();
             }
 
             /// <summary>Returns an enumerator that iterates through a collection.</summary>
