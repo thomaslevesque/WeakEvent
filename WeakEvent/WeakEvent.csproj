@@ -8,7 +8,7 @@
 
     <PropertyGroup Label="Package properties">
         <PackageId>ThomasLevesque.WeakEvent</PackageId>
-        <Version>2.1.1</Version>
+        <Version>2.2.0</Version>
         <Authors>Thomas Levesque</Authors>
         <Description>A generic weak event implementation.</Description>
         <PackageLicenseUrl>https://github.com/thomaslevesque/WeakEvent/blob/master/LICENSE.txt</PackageLicenseUrl>
