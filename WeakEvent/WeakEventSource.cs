@@ -22,19 +22,25 @@ namespace WeakEvent
 
         public void Raise(object sender, TEventArgs e)
         {
+            WeakDelegate[] array;
+
+            lock (_handlers) array = _handlers.ToArray();
+
+            var failedHandlers = new List<int>();
+            int i = 0;
+
+            foreach (var handler in array)
+            {
+                if (handler == null || !handler.Invoke(sender, e))
+                {
+                    failedHandlers.Add(i);
+                }
+
+                i++;
+            }
+
             lock (_handlers)
             {
-                var failedHandlers = new List<int>();
-                int i = 0;
-                foreach (var handler in _handlers.ToArray())
-                {
-                    if (handler == null || !handler.Invoke(sender, e))
-                    {
-                        failedHandlers.Add(i);
-                    }
-
-                    i++;
-                }
 
                 foreach (var index in failedHandlers)
                     _handlers.Invalidate(index);
