@@ -12,8 +12,10 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1, pub, calledSubscribers.Add);
-            var sub2 = new InstanceSubscriber(2, pub, calledSubscribers.Add);
+            var sub1 = new InstanceSubscriber(1, calledSubscribers.Add);
+            sub1.Subscribe(pub);
+            var sub2 = new InstanceSubscriber(2, calledSubscribers.Add);
+            sub2.Subscribe(pub);
 
             pub.Raise();
             calledSubscribers.Should().Equal(1, 2);
@@ -56,8 +58,10 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1, pub, calledSubscribers.Add);
-            var sub2 = new InstanceSubscriber(2, pub, calledSubscribers.Add);
+            var sub1 = new InstanceSubscriber(1, calledSubscribers.Add);
+            sub1.Subscribe(pub);
+            var sub2 = new InstanceSubscriber(2, calledSubscribers.Add);
+            sub2.Subscribe(pub);
             StaticSubscriber.FooWasRaised = false;
             StaticSubscriber.Subscribe(pub);
 
@@ -91,8 +95,10 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1, pub, calledSubscribers.Add);
-            var sub2 = new InstanceSubscriber(2, pub, calledSubscribers.Add);
+            var sub1 = new InstanceSubscriber(1, calledSubscribers.Add);
+            sub1.Subscribe(pub);
+            var sub2 = new InstanceSubscriber(2, calledSubscribers.Add);
+            sub2.Subscribe(pub);
             var weakSub1 = new WeakReference(sub1);
             var weakSub2 = new WeakReference(sub2);
 
@@ -116,16 +122,18 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1, pub, i =>
+            var sub2 = new InstanceSubscriber(2, calledSubscribers.Add);
+            var sub1 = new InstanceSubscriber(1, i =>
             {
                 calledSubscribers.Add(i);
 
                 // This listener should not receive the event during the first round of notifications
-                var sub2 = new InstanceSubscriber(i + 1, pub, calledSubscribers.Add);
+                sub2.Subscribe(pub);
 
                 // Make sure subscribers are not collected before the end of the test
                 GC.KeepAlive(sub2);
             });
+            sub1.Subscribe(pub);
 
             pub.Raise();
             calledSubscribers.Should().Equal(1);
@@ -174,16 +182,20 @@ namespace WeakEvent.Tests
             private readonly int _id;
             private readonly Action<int> _onFoo;
 
-            public InstanceSubscriber(int id, Publisher pub, Action<int> onFoo)
+            public InstanceSubscriber(int id, Action<int> onFoo)
             {
                 _id = id;
                 _onFoo = onFoo;
-                pub.Foo += OnFoo;
             }
 
             private void OnFoo(object sender, EventArgs e)
             {
                 _onFoo(_id);
+            }
+
+            public void Subscribe(Publisher pub)
+            {
+                pub.Foo += OnFoo;
             }
 
             public void Unsubscribe(Publisher pub)
