@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using FluentAssertions;
 using Xunit;
 
@@ -158,6 +159,44 @@ namespace WeakEvent.Tests
             pub.Raise();
 
             calledSubscribers.Should().Equal(1, 2);
+        }
+
+        [Fact]
+        public void Can_Subscribe_While_Another_Thread_Is_Invoking()
+        {
+            var sub1CanFinish = new ManualResetEvent(false);
+            var sub2CanSubscribe = new ManualResetEvent(false);
+
+            var pub = new Publisher();
+            var sub1 = new InstanceSubscriber(1, i =>
+            {
+                sub2CanSubscribe.Set();
+                sub1CanFinish.WaitOne();
+            });
+            var sub2 = new InstanceSubscriber(2, i => { });
+            sub1.Subscribe(pub);
+
+            var thread1 = new Thread(() =>
+            {
+                pub.Raise();
+            });
+
+            var thread2 = new Thread(() =>
+            {
+                sub2CanSubscribe.WaitOne();
+                sub2.Subscribe(pub);
+            });
+
+            thread1.Start();
+            thread2.Start();
+            bool subscribeFinished = thread2.Join(500);
+            sub1CanFinish.Set();
+            thread1.Join();
+
+            subscribeFinished.Should().BeTrue();
+
+            GC.KeepAlive(sub1);
+            GC.KeepAlive(sub2);
         }
 
         #region Test subjects
