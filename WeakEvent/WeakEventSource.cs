@@ -22,24 +22,27 @@ namespace WeakEvent
 
         public void Raise(object sender, TEventArgs e)
         {
+            List<StrongHandler> validHandlers;
             lock (_handlers)
             {
-                var failedHandlers = new List<int>();
+                var weakHandlers = _handlers.ToArray();
+                validHandlers = new List<StrongHandler>(weakHandlers.Length);
                 int i = 0;
-                foreach (var handler in _handlers.ToArray())
+                foreach (var weakHandler in weakHandlers)
                 {
-                    if (handler == null || !handler.Invoke(sender, e))
-                    {
-                        failedHandlers.Add(i);
-                    }
-
+                    if (weakHandler.TryGetStrongHandler() is StrongHandler handler)
+                        validHandlers.Add(handler);
+                    else
+                        _handlers.Invalidate(i);
                     i++;
                 }
 
-                foreach (var index in failedHandlers)
-                    _handlers.Invalidate(index);
-
                 _handlers.CollectDeleted();
+            }
+
+            foreach (var handler in validHandlers)
+            {
+                handler.Invoke(sender, e);
             }
         }
 
@@ -74,11 +77,11 @@ namespace WeakEvent
             }
         }
 
-        class WeakDelegate
-        {
-#region Open handler generation and cache
+        private delegate void OpenEventHandler(object target, object sender, TEventArgs e);
 
-            private delegate void OpenEventHandler(object target, object sender, TEventArgs e);
+        private class WeakDelegate
+        {
+            #region Open handler generation and cache
 
             // ReSharper disable once StaticMemberInGenericType (by design)
             private static readonly ConcurrentDictionary<MethodInfo, OpenEventHandler> OpenHandlerCache =
@@ -111,7 +114,7 @@ namespace WeakEvent
                 }
             }
 
-#endregion
+            #endregion
 
             private readonly WeakReference _weakTarget;
             private readonly MethodInfo _method;
@@ -124,23 +127,23 @@ namespace WeakEvent
                 _openHandler = OpenHandlerCache.GetOrAdd(_method, CreateOpenHandler);
             }
 
-            public bool Invoke(object sender, TEventArgs e)
+            public StrongHandler? TryGetStrongHandler()
             {
                 object target = null;
                 if (_weakTarget != null)
                 {
                     target = _weakTarget.Target;
                     if (target == null)
-                        return false;
+                        return null;
                 }
-                _openHandler(target, sender, e);
-                return true;
+
+                return new StrongHandler(target, _openHandler);
             }
 
             public bool IsMatch(EventHandler<TEventArgs> handler)
             {
                 return ReferenceEquals(handler.Target, _weakTarget?.Target)
-                    && handler.GetMethodInfo().Equals(_method);
+                       && handler.GetMethodInfo().Equals(_method);
             }
 
             public static int GetHashCode(EventHandler<TEventArgs> handler)
@@ -152,6 +155,22 @@ namespace WeakEvent
             }
         }
 
+        private struct StrongHandler
+        {
+            private readonly object _target;
+            private readonly OpenEventHandler _openHandler;
+
+            public StrongHandler(object target, OpenEventHandler openHandler)
+            {
+                _target = target;
+                _openHandler = openHandler;
+            }
+
+            public void Invoke(object sender, TEventArgs e)
+            {
+                _openHandler(_target, sender, e);
+            }
+        }
 
         private class DelegateCollection : IEnumerable<WeakDelegate>
         {
@@ -247,10 +266,7 @@ namespace WeakEvent
                     _index.Add(hashCode, new List<int> { index });
             }
 
-            WeakDelegate this[int index]
-            {
-                get { return _delegates[index]; }
-            }
+            WeakDelegate this[int index] => _delegates[index];
 
             /// <summary>Returns an enumerator that iterates through the collection.</summary>
             /// <returns>A <see cref="T:System.Collections.Generic.IEnumerator`1" /> that can be used to iterate through the collection.</returns>
@@ -266,6 +282,5 @@ namespace WeakEvent
                 return GetEnumerator();
             }
         }
-        
     }
 }
