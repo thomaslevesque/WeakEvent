@@ -25,11 +25,10 @@ namespace WeakEvent
             List<StrongHandler> validHandlers;
             lock (_handlers)
             {
-                var weakHandlers = _handlers.ToArray();
-                validHandlers = new List<StrongHandler>(weakHandlers.Length);
-                int i = 0;
-                foreach (var weakHandler in weakHandlers)
+                validHandlers = new List<StrongHandler>(_handlers.Count);
+                for (int i = 0; i < _handlers.Count; i++)
                 {
+                    var weakHandler = _handlers[i];
                     if (weakHandler != null)
                     {
                         if (weakHandler.TryGetStrongHandler() is StrongHandler handler)
@@ -37,8 +36,6 @@ namespace WeakEvent
                         else
                             _handlers.Invalidate(i);
                     }
-
-                    i++;
                 }
 
                 _handlers.CollectDeleted();
@@ -270,7 +267,7 @@ namespace WeakEvent
                     _index.Add(hashCode, new List<int> { index });
             }
 
-            WeakDelegate this[int index] => _delegates[index];
+            public WeakDelegate this[int index] => _delegates[index];
 
             /// <summary>Returns an enumerator that iterates through the collection.</summary>
             /// <returns>A <see cref="T:System.Collections.Generic.IEnumerator`1" /> that can be used to iterate through the collection.</returns>
@@ -285,6 +282,8 @@ namespace WeakEvent
             {
                 return GetEnumerator();
             }
+
+            public int Count => _delegates.Count;
         }
     }
 }
