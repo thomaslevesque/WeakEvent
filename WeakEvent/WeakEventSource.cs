@@ -30,10 +30,14 @@ namespace WeakEvent
                 int i = 0;
                 foreach (var weakHandler in weakHandlers)
                 {
-                    if (weakHandler.TryGetStrongHandler() is StrongHandler handler)
-                        validHandlers.Add(handler);
-                    else
-                        _handlers.Invalidate(i);
+                    if (weakHandler != null)
+                    {
+                        if (weakHandler.TryGetStrongHandler() is StrongHandler handler)
+                            validHandlers.Add(handler);
+                        else
+                            _handlers.Invalidate(i);
+                    }
+
                     i++;
                 }
 
