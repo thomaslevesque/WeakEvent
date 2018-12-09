@@ -196,6 +196,6 @@ FakesAssemblies/
 *.opt
 
 # Cake
-tools/*
-!tools/packages.config
+tools/Cake
+tools/packages.config.md5sum
 

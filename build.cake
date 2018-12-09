@@ -4,9 +4,9 @@ var target = Argument<string>("target", "Default");
 var configuration = Argument<string>("configuration", "Release");
 
 var projectName = "WeakEvent";
-var libraryProject = $"./{projectName}/{projectName}.csproj";
-var testProject = $"./{projectName}.Tests/{projectName}.Tests.csproj";
-var outDir = $"./{projectName}/bin/{configuration}";
+var libraryProject = $"src/{projectName}/{projectName}.csproj";
+var testProject = $"tests/{projectName}.Tests/{projectName}.Tests.csproj";
+var outDir = $"src/{projectName}/bin/{configuration}";
 
 Task("Clean")
     .Does(() =>
@@ -44,7 +44,7 @@ Task("Push")
 {
     var doc = XDocument.Load(libraryProject);
     string version = doc.Root.Elements("PropertyGroup").Elements("Version").First().Value;
-    string package = $"{projectName}/bin/{configuration}/{projectName}.{version}.nupkg";
+    string package = $"src/{projectName}/bin/{configuration}/{projectName}.{version}.nupkg";
     NuGetPush(package, new NuGetPushSettings());
 });
 

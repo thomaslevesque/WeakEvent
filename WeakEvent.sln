@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeakEvent", "WeakEvent\WeakEvent.csproj", "{96E2D296-BDC9-449D-8094-F1020DFBFB8B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeakEvent", "src\WeakEvent\WeakEvent.csproj", "{96E2D296-BDC9-449D-8094-F1020DFBFB8B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1540CDFD-FB74-48D8-BA77-3BC26F4C75B1}"
 	ProjectSection(SolutionItems) = preProject
@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		NuGet\ThomasLevesque.WeakEvent.nuspec = NuGet\ThomasLevesque.WeakEvent.nuspec
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeakEvent.Tests", "WeakEvent.Tests\WeakEvent.Tests.csproj", "{C95539EE-3EA3-4B64-A87D-C55370EC9BAE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeakEvent.Tests", "tests\WeakEvent.Tests\WeakEvent.Tests.csproj", "{C95539EE-3EA3-4B64-A87D-C55370EC9BAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
