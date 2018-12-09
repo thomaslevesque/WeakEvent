@@ -4,6 +4,7 @@
         <TargetFrameworks>netstandard1.1;netstandard2.0;net35;net40;net45</TargetFrameworks>
         <NeutralLanguage>en</NeutralLanguage>
         <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
+        <MinVerVerbosity>quiet</MinVerVerbosity>
     </PropertyGroup>
 
     <PropertyGroup Label="Package properties">
@@ -29,6 +30,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
+        <PackageReference Include="MinVer" Version="1.0.0-beta.1" PrivateAssets="All" />
     </ItemGroup>
 
 </Project>

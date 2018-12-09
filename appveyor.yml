@@ -5,7 +5,7 @@ image: Visual Studio 2017
 nuget:
   disable_publish_on_pr: true
 build_script:
-- ps: .\build.ps1
+- cmd: build.cmd
 test: off
 artifacts:
-- path: '**/ThomasLevesque.WeakEvent.*.nupkg'
+- path: 'artifacts/**/*'
