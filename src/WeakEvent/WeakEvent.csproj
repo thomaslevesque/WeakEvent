@@ -4,6 +4,8 @@
         <TargetFrameworks>netstandard1.1;netstandard2.0;net35;net40;net45</TargetFrameworks>
         <NeutralLanguage>en</NeutralLanguage>
         <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
+        <AssemblyOriginatorKeyFile>WeakEvent.snk</AssemblyOriginatorKeyFile>
+        <SignAssembly>true</SignAssembly>
         <MinVerVerbosity>quiet</MinVerVerbosity>
     </PropertyGroup>
 
