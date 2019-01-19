@@ -1,4 +1,3 @@
-#if ASYNC
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -288,4 +287,3 @@ namespace WeakEvent
         }
     }
 }
-#endif
