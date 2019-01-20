@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>netstandard1.1;netstandard2.0;net35;net40;net45</TargetFrameworks>
@@ -29,6 +29,10 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
         <DefineConstants>$(DefineConstants);NET40</DefineConstants>
     </PropertyGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' != 'net45' And '$(TargetFramework)' != 'netstandard1.1' And '$(TargetFramework)' != 'netstandard2.0'">
+        <Compile Remove="AsyncWeakEventSource.cs" />
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
