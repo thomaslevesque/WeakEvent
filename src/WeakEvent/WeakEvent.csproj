@@ -13,7 +13,7 @@
         <PackageId>ThomasLevesque.WeakEvent</PackageId>
         <Authors>Thomas Levesque</Authors>
         <Description>A generic weak event implementation.</Description>
-        <PackageLicenseUrl>https://github.com/thomaslevesque/WeakEvent/blob/master/LICENSE.txt</PackageLicenseUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/thomaslevesque/WeakEvent/</PackageProjectUrl>
         <PackageTags>weak;event;weakevent</PackageTags>
         <PackageReleaseNotes>https://github.com/thomaslevesque/WeakEvent/releases</PackageReleaseNotes>
