@@ -74,7 +74,24 @@ namespace build
                     "dotnet",
                     $"pack -c \"{Configuration}\" --no-build -o \"{packagesDir}\" \"{libraryProject}\""));
 
-            Target("default", DependsOn("test", "pack"));
+            Target(
+                "dotnet-format-install",
+                () =>
+                {
+                    Run("dotnet", "tool install -g dotnet-format&dotnet tool update -g dotnet-format");
+                }
+            );
+
+            Target(
+                "dotnet-format",
+                DependsOn("dotnet-format-install"),
+                () =>
+                {
+                    Run("dotnet", "format --check");
+                }
+            );
+
+            Target("default", DependsOn("test", "dotnet-format", "pack"));
 
             RunTargetsAndExit(RemainingArguments);
         }

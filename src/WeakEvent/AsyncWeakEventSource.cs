@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace WeakEvent
 {
     public delegate Task AsyncEventHandler<TEventArgs>(object sender, TEventArgs e);
-  
+
     public class AsyncWeakEventSource<TEventArgs>
     {
         private readonly DelegateCollection _handlers;

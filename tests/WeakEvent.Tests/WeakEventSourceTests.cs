@@ -203,22 +203,22 @@ namespace WeakEvent.Tests
         public void Can_Raise_Even_If_Delegates_List_Is_Unclean()
         {
             var pub = new Publisher();
-            
-            var sub1 = new InstanceSubscriber(1, i =>{});
+
+            var sub1 = new InstanceSubscriber(1, i => { });
             sub1.Subscribe(pub);
-            var sub2 = new InstanceSubscriber(1, i =>{});
+            var sub2 = new InstanceSubscriber(1, i => { });
             sub2.Subscribe(pub);
-            var sub3 = new InstanceSubscriber(1, i =>{});
+            var sub3 = new InstanceSubscriber(1, i => { });
             sub3.Subscribe(pub);
-            var sub4 = new InstanceSubscriber(1, i =>{});
+            var sub4 = new InstanceSubscriber(1, i => { });
             sub4.Subscribe(pub);
-            var sub5 = new InstanceSubscriber(1, i =>{});
+            var sub5 = new InstanceSubscriber(1, i => { });
             sub5.Subscribe(pub);
-            var sub6 = new InstanceSubscriber(1, i =>{});
+            var sub6 = new InstanceSubscriber(1, i => { });
             sub6.Subscribe(pub);
-            var sub7 = new InstanceSubscriber(1, i =>{});
+            var sub7 = new InstanceSubscriber(1, i => { });
             sub7.Subscribe(pub);
-            var sub8 = new InstanceSubscriber(1, i =>{});
+            var sub8 = new InstanceSubscriber(1, i => { });
             sub8.Subscribe(pub);
 
             sub8.Unsubscribe(pub);

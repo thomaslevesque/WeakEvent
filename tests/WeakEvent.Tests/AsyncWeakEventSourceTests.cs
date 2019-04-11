@@ -14,9 +14,9 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1,i => AsyncAdd(calledSubscribers, i));
+            var sub1 = new InstanceSubscriber(1, i => AsyncAdd(calledSubscribers, i));
             sub1.Subscribe(pub);
-            var sub2 = new InstanceSubscriber(2,i => AsyncAdd(calledSubscribers, i));
+            var sub2 = new InstanceSubscriber(2, i => AsyncAdd(calledSubscribers, i));
             sub2.Subscribe(pub);
 
             await pub.Raise();
@@ -97,9 +97,9 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1,i =>  AsyncAdd(calledSubscribers, i));
+            var sub1 = new InstanceSubscriber(1, i => AsyncAdd(calledSubscribers, i));
             sub1.Subscribe(pub);
-            var sub2 = new InstanceSubscriber(2,i => AsyncAdd(calledSubscribers, i));
+            var sub2 = new InstanceSubscriber(2, i => AsyncAdd(calledSubscribers, i));
             sub2.Subscribe(pub);
             var weakSub1 = new WeakReference(sub1);
             var weakSub2 = new WeakReference(sub2);
@@ -184,15 +184,16 @@ namespace WeakEvent.Tests
                 sub2CanSubscribe.WaitOne();
                 sub2.Subscribe(pub);
             });
-            
-            if (await Task.WhenAny(task2, Task.Delay(500)) != task2) {
+
+            if (await Task.WhenAny(task2, Task.Delay(500)) != task2)
+            {
                 throw new Exception("timed out");
             }
 
             sub1CanFinish.Set();
 
             await task1;
-            
+
             GC.KeepAlive(sub1);
             GC.KeepAlive(sub2);
         }
@@ -201,8 +202,8 @@ namespace WeakEvent.Tests
         public async Task Can_Raise_Even_If_Delegates_List_Is_Unclean()
         {
             var pub = new Publisher();
-            
-            var sub1 = new InstanceSubscriber(1,async i => await Task.Yield());
+
+            var sub1 = new InstanceSubscriber(1, async i => await Task.Yield());
             sub1.Subscribe(pub);
             var sub2 = new InstanceSubscriber(1, async i => await Task.Yield());
             sub2.Subscribe(pub);
@@ -232,7 +233,7 @@ namespace WeakEvent.Tests
             list.Add(value);
             await Task.Yield();
         }
-        
+
         class Publisher
         {
             private readonly AsyncWeakEventSource<EventArgs> _fooEventSource = new AsyncWeakEventSource<EventArgs>();
