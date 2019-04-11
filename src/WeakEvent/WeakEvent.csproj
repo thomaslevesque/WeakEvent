@@ -1,41 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFrameworks>netstandard1.1;netstandard2.0;net35;net40;net45</TargetFrameworks>
-        <NeutralLanguage>en</NeutralLanguage>
-        <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
-        <AssemblyOriginatorKeyFile>WeakEvent.snk</AssemblyOriginatorKeyFile>
-        <SignAssembly>true</SignAssembly>
-        <MinVerVerbosity>quiet</MinVerVerbosity>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.1;netstandard2.0;net35;net40;net45</TargetFrameworks>
+    <NeutralLanguage>en</NeutralLanguage>
+    <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
+    <AssemblyOriginatorKeyFile>WeakEvent.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <MinVerVerbosity>quiet</MinVerVerbosity>
+  </PropertyGroup>
 
-    <PropertyGroup Label="Package properties">
-        <PackageId>ThomasLevesque.WeakEvent</PackageId>
-        <Authors>Thomas Levesque</Authors>
-        <Description>A generic weak event implementation.</Description>
-        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <PackageProjectUrl>https://github.com/thomaslevesque/WeakEvent/</PackageProjectUrl>
-        <PackageTags>weak;event;weakevent</PackageTags>
-        <PackageReleaseNotes>https://github.com/thomaslevesque/WeakEvent/releases</PackageReleaseNotes>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    </PropertyGroup>
+  <PropertyGroup Label="Package properties">
+    <PackageId>ThomasLevesque.WeakEvent</PackageId>
+    <Authors>Thomas Levesque</Authors>
+    <Description>A generic weak event implementation.</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/thomaslevesque/WeakEvent/</PackageProjectUrl>
+    <PackageTags>weak;event;weakevent</PackageTags>
+    <PackageReleaseNotes>https://github.com/thomaslevesque/WeakEvent/releases</PackageReleaseNotes>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net35'">
-        <DefineConstants>$(DefineConstants);NET35</DefineConstants>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net35'">
+    <DefineConstants>$(DefineConstants);NET35</DefineConstants>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-        <DefineConstants>$(DefineConstants);NET40</DefineConstants>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>$(DefineConstants);NET40</DefineConstants>
+  </PropertyGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' != 'net45' And '$(TargetFramework)' != 'netstandard1.1' And '$(TargetFramework)' != 'netstandard2.0'">
-        <Compile Remove="AsyncWeakEventSource.cs" />
-    </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net45' And '$(TargetFramework)' != 'netstandard1.1' And '$(TargetFramework)' != 'netstandard2.0'">
+    <Compile Remove="AsyncWeakEventSource.cs" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
-        <PackageReference Include="MinVer" Version="1.0.0-rc.1" PrivateAssets="All" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All"/>
+    <PackageReference Include="MinVer" Version="1.0.0+build.203" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
+  </ItemGroup>
 
 </Project>

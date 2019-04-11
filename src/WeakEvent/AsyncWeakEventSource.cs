@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -43,7 +43,7 @@ namespace WeakEvent
 
             foreach (var handler in validHandlers)
             {
-                await handler.Invoke(sender, e);
+                await handler.Invoke(sender, e).ConfigureAwait(false);
             }
         }
 
