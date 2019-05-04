@@ -1,8 +1,8 @@
 # WeakEvent
 
-[![NuGet version](https://img.shields.io/nuget/v/ThomasLevesque.WeakEvent.svg)](https://www.nuget.org/packages/ThomasLevesque.WeakEvent)
-[![AppVeyor build](https://img.shields.io/appveyor/ci/thomaslevesque/weakevent.svg)](https://ci.appveyor.com/project/thomaslevesque/weakevent)
-[![AppVeyor tests](https://img.shields.io/appveyor/tests/thomaslevesque/weakevent.svg)](https://ci.appveyor.com/project/thomaslevesque/weakevent/build/tests)
+[![NuGet version](https://img.shields.io/nuget/v/ThomasLevesque.WeakEvent.svg?logo=nuget)](https://www.nuget.org/packages/ThomasLevesque.WeakEvent)
+[![AppVeyor build](https://img.shields.io/appveyor/ci/thomaslevesque/weakevent.svg?logo=appveyor)](https://ci.appveyor.com/project/thomaslevesque/weakevent)
+[![AppVeyor tests](https://img.shields.io/appveyor/tests/thomaslevesque/weakevent.svg?logo=appveyor)](https://ci.appveyor.com/project/thomaslevesque/weakevent/build/tests)
 
 Events are the most common source of memory leaks in .NET apps: the lifetime of the subscriber is extended to that of the publisher,
 unless you unsubscribe from the event. That's because the publisher maintains a strong reference to the subscriber, via the delegate,
