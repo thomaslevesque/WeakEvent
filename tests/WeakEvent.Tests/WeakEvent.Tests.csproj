@@ -1,7 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>netcoreapp1.0;netcoreapp2.0;net461</TargetFrameworks>
+        <IsTestProject>true</IsTestProject>
+        <!-- Because some tests fail with optimizations disabled -->
+        <Optimize>true</Optimize>
     </PropertyGroup>
 
     <ItemGroup>

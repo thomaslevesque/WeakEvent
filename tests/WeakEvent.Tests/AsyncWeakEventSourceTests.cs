@@ -172,27 +172,28 @@ namespace WeakEvent.Tests
             var sub1 = new InstanceSubscriber(1, async i =>
             {
                 sub2CanSubscribe.Set();
-                sub1CanFinish.WaitOne();
-                await Task.Yield();
+                await sub1CanFinish.WaitOneAsync();
             });
             var sub2 = new InstanceSubscriber(2, async i => await Task.Yield());
             sub1.Subscribe(pub);
 
-            var task1 = Task.Run(async () => { await pub.Raise(); });
-            var task2 = Task.Run(() =>
+            var task1 = Task.Run(async () =>
             {
-                sub2CanSubscribe.WaitOne();
+                await pub.Raise();
+            });
+
+            var task2 = Task.Run(async () =>
+            {
+                await sub2CanSubscribe.WaitOneAsync();
                 sub2.Subscribe(pub);
             });
-            
-            if (await Task.WhenAny(task2, Task.Delay(500)) != task2) {
-                throw new Exception("timed out");
-            }
 
+            bool subscribeFinished = await Task.WhenAny(task2, Task.Delay(500)) == task2;
             sub1CanFinish.Set();
-
             await task1;
-            
+
+            subscribeFinished.Should().BeTrue();
+
             GC.KeepAlive(sub1);
             GC.KeepAlive(sub2);
         }
@@ -201,7 +202,7 @@ namespace WeakEvent.Tests
         public async Task Can_Raise_Even_If_Delegates_List_Is_Unclean()
         {
             var pub = new Publisher();
-            
+
             var sub1 = new InstanceSubscriber(1,async i => await Task.Yield());
             sub1.Subscribe(pub);
             var sub2 = new InstanceSubscriber(1, async i => await Task.Yield());
@@ -232,7 +233,7 @@ namespace WeakEvent.Tests
             list.Add(value);
             await Task.Yield();
         }
-        
+
         class Publisher
         {
             private readonly AsyncWeakEventSource<EventArgs> _fooEventSource = new AsyncWeakEventSource<EventArgs>();
