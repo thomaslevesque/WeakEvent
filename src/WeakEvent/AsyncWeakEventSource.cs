@@ -49,6 +49,9 @@ namespace WeakEvent
 
         public void Subscribe(AsyncEventHandler<TEventArgs> handler)
         {
+            if (handler is null)
+                throw new ArgumentNullException(nameof(handler));
+
             var singleHandlers = handler
                 .GetInvocationList()
                 .Cast<AsyncEventHandler<TEventArgs>>()
@@ -63,6 +66,9 @@ namespace WeakEvent
 
         public void Unsubscribe(AsyncEventHandler<TEventArgs> handler)
         {
+            if (handler is null)
+                throw new ArgumentNullException(nameof(handler));
+
             var singleHandlers = handler
                 .GetInvocationList()
                 .Cast<AsyncEventHandler<TEventArgs>>();
