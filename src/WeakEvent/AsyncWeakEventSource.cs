@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WeakEvent
@@ -13,15 +14,13 @@ namespace WeakEvent
   
     public class AsyncWeakEventSource<TEventArgs>
     {
-        private readonly DelegateCollection _handlers;
-
-        public AsyncWeakEventSource()
-        {
-            _handlers = new DelegateCollection();
-        }
+        private DelegateCollection _handlers;
 
         public async Task RaiseAsync(object sender, TEventArgs e)
         {
+            if (_handlers is null)
+                return;
+
             List<StrongHandler> validHandlers;
             lock (_handlers)
             {
@@ -57,6 +56,7 @@ namespace WeakEvent
                 .Cast<AsyncEventHandler<TEventArgs>>()
                 .ToList();
 
+            LazyInitializer.EnsureInitialized(ref _handlers);
             lock (_handlers)
             {
                 foreach (var h in singleHandlers)
@@ -68,6 +68,9 @@ namespace WeakEvent
         {
             if (handler is null)
                 throw new ArgumentNullException(nameof(handler));
+
+            if (_handlers is null)
+                return;
 
             var singleHandlers = handler
                 .GetInvocationList()
