@@ -1,4 +1,6 @@
 #if NET40 || NET35
+using System.Collections.Generic;
+
 namespace System.Reflection
 {
     internal static class CompatibilityExtensions
@@ -6,6 +8,11 @@ namespace System.Reflection
         public static MethodInfo GetMethodInfo(this Delegate @delegate)
         {
             return @delegate.Method;
+        }
+
+        public static IEnumerable<MethodInfo> GetRuntimeMethods(this Type type)
+        {
+            return type.GetMethods();
         }
     }
 }
