@@ -4,7 +4,7 @@ using static WeakEvent.WeakEventSourceHelper;
 namespace WeakEvent
 {
     public class WeakEventSource<TEventArgs>
-#if NET40 || NET35
+#if NET40
         where TEventArgs : EventArgs
 #endif
     {
