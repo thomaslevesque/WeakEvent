@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using static WeakEvent.WeakEventSourceHelper;
 
 namespace WeakEvent
 {
@@ -14,28 +11,7 @@ namespace WeakEvent
 
         public async Task RaiseAsync(object sender, TEventArgs e)
         {
-            if (_handlers is null)
-                return;
-
-            List<StrongHandler> validHandlers;
-            lock (_handlers)
-            {
-                validHandlers = new List<StrongHandler>(_handlers.Count);
-                for (int i = 0; i < _handlers.Count; i++)
-                {
-                    var weakHandler = _handlers[i];
-                    if (weakHandler != null)
-                    {
-                        if (weakHandler.TryGetStrongHandler() is StrongHandler handler)
-                            validHandlers.Add(handler);
-                        else
-                            _handlers.Invalidate(i);
-                    }
-                }
-
-                _handlers.CollectDeleted();
-            }
-
+            var validHandlers = GetValidHandlers(_handlers);
             foreach (var handler in validHandlers)
             {
                 await handler.Invoke(sender, e);
@@ -44,43 +20,12 @@ namespace WeakEvent
 
         public void Subscribe(AsyncEventHandler<TEventArgs> handler)
         {
-            if (handler is null)
-                throw new ArgumentNullException(nameof(handler));
-
-            var singleHandlers = handler
-                .GetInvocationList()
-                .Cast<AsyncEventHandler<TEventArgs>>()
-                .ToList();
-
-            LazyInitializer.EnsureInitialized(ref _handlers);
-            lock (_handlers)
-            {
-                foreach (var h in singleHandlers)
-                    _handlers.Add(h);
-            }
+            Subscribe<DelegateCollection, OpenEventHandler, StrongHandler>(ref _handlers, handler);
         }
 
         public void Unsubscribe(AsyncEventHandler<TEventArgs> handler)
         {
-            if (handler is null)
-                throw new ArgumentNullException(nameof(handler));
-
-            if (_handlers is null)
-                return;
-
-            var singleHandlers = handler
-                .GetInvocationList()
-                .Cast<AsyncEventHandler<TEventArgs>>();
-
-            lock (_handlers)
-            {
-                foreach (var singleHandler in singleHandlers)
-                {
-                    _handlers.Remove(singleHandler);
-                }
-
-                _handlers.CollectDeleted();
-            }
+            Unsubscribe<OpenEventHandler, StrongHandler>(_handlers, handler);
         }
 
         private delegate Task OpenEventHandler(object target, object sender, TEventArgs e);
