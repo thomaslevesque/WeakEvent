@@ -14,9 +14,9 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1,i => AsyncAdd(calledSubscribers, i));
+            var sub1 = new InstanceSubscriber(1, i => AddAsync(calledSubscribers, i));
             sub1.Subscribe(pub);
-            var sub2 = new InstanceSubscriber(2,i => AsyncAdd(calledSubscribers, i));
+            var sub2 = new InstanceSubscriber(2, i => AddAsync(calledSubscribers, i));
             sub2.Subscribe(pub);
 
             await pub.Raise();
@@ -45,9 +45,9 @@ namespace WeakEvent.Tests
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
             AsyncEventHandler<EventArgs> handler = null;
-            handler += (sender, e) => AsyncAdd(calledSubscribers, 1);
-            handler += (sender, e) => AsyncAdd(calledSubscribers, 2);
-            handler += (sender, e) => AsyncAdd(calledSubscribers, 3);
+            handler += (sender, e) => AddAsync(calledSubscribers, 1);
+            handler += (sender, e) => AddAsync(calledSubscribers, 2);
+            handler += (sender, e) => AddAsync(calledSubscribers, 3);
 
             pub.Foo += handler;
             await pub.Raise();
@@ -60,9 +60,9 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1, i => AsyncAdd(calledSubscribers, i));
+            var sub1 = new InstanceSubscriber(1, i => AddAsync(calledSubscribers, i));
             sub1.Subscribe(pub);
-            var sub2 = new InstanceSubscriber(2, i => AsyncAdd(calledSubscribers, i));
+            var sub2 = new InstanceSubscriber(2, i => AddAsync(calledSubscribers, i));
             sub2.Subscribe(pub);
             StaticSubscriber.FooWasRaised = false;
             StaticSubscriber.Subscribe(pub);
@@ -97,9 +97,9 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub1 = new InstanceSubscriber(1,i =>  AsyncAdd(calledSubscribers, i));
+            var sub1 = new InstanceSubscriber(1, i =>  AddAsync(calledSubscribers, i));
             sub1.Subscribe(pub);
-            var sub2 = new InstanceSubscriber(2,i => AsyncAdd(calledSubscribers, i));
+            var sub2 = new InstanceSubscriber(2, i => AddAsync(calledSubscribers, i));
             sub2.Subscribe(pub);
             var weakSub1 = new WeakReference(sub1);
             var weakSub2 = new WeakReference(sub2);
@@ -124,10 +124,10 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            var sub2 = new InstanceSubscriber(2, i => AsyncAdd(calledSubscribers, i));
+            var sub2 = new InstanceSubscriber(2, i => AddAsync(calledSubscribers, i));
             var sub1 = new InstanceSubscriber(1, async i =>
             {
-                await AsyncAdd(calledSubscribers, i);
+                await AddAsync(calledSubscribers, i);
 
                 // This listener should not receive the event during the first round of notifications
                 sub2.Subscribe(pub);
@@ -150,8 +150,8 @@ namespace WeakEvent.Tests
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
             AsyncEventHandler<EventArgs> handler = null;
-            handler += (sender, e) => AsyncAdd(calledSubscribers, 1);
-            handler += (sender, e) => AsyncAdd(calledSubscribers, 2);
+            handler += (sender, e) => AddAsync(calledSubscribers, 1);
+            handler += (sender, e) => AddAsync(calledSubscribers, 2);
 
             pub.Foo += handler;
             await pub.Raise();
@@ -225,11 +225,51 @@ namespace WeakEvent.Tests
             await pub.Raise();
         }
 
+        [Fact]
+        public async Task Subscriber_Stays_Alive_If_Lifetime_Object_Is_Alive()
+        {
+            bool handlerWasCalled = false;
+            object lifetime = new object();
+            var source = new AsyncWeakEventSource<EventArgs>();
+            source.Subscribe(lifetime, new InstanceSubscriber(1, async i =>
+            {
+                handlerWasCalled = true;
+                await Task.Yield();
+            }).OnFoo);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            await source.RaiseAsync(this, EventArgs.Empty);
+            handlerWasCalled.Should().BeTrue();
+
+            GC.KeepAlive(lifetime);
+        }
+
+        [Fact]
+        public async Task Subscriber_Dies_If_Lifetime_Object_Is_Dead()
+        {
+            bool handlerWasCalled = false;
+            var source = new AsyncWeakEventSource<EventArgs>();
+            object lifetime = new object();
+            source.Subscribe(lifetime, new InstanceSubscriber(1, async i => 
+            {
+                handlerWasCalled = true;
+                await Task.Yield();
+            }).OnFoo);
+            lifetime = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            await source.RaiseAsync(this, EventArgs.Empty);
+            handlerWasCalled.Should().BeFalse();
+        }
+
         #region Test subjects
 
-        private async Task AsyncAdd(List<int> list, int value)
+        private async Task AddAsync(List<int> list, int value)
         {
-            // This method is just to keep the test code more terse.
             list.Add(value);
             await Task.Yield();
         }
@@ -260,7 +300,7 @@ namespace WeakEvent.Tests
                 _onFoo = onFoo;
             }
 
-            private async Task OnFoo(object sender, EventArgs e)
+            public async Task OnFoo(object sender, EventArgs e)
             {
                 await _onFoo(_id);
             }

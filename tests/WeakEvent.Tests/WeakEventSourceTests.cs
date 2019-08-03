@@ -226,6 +226,39 @@ namespace WeakEvent.Tests
             pub.Raise();
         }
 
+        [Fact]
+        public void Subscriber_Stays_Alive_If_Lifetime_Object_Is_Alive()
+        {
+            bool handlerWasCalled = false;
+            object lifetime = new object();
+            var source = new WeakEventSource<EventArgs>();
+            source.Subscribe(lifetime, new InstanceSubscriber(1, i => handlerWasCalled = true).OnFoo);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            source.Raise(this, EventArgs.Empty);
+            handlerWasCalled.Should().BeTrue();
+
+            GC.KeepAlive(lifetime);
+        }
+
+        [Fact]
+        public void Subscriber_Dies_If_Lifetime_Object_Is_Dead()
+        {
+            bool handlerWasCalled = false;
+            var source = new WeakEventSource<EventArgs>();
+            object lifetime = new object();
+            source.Subscribe(lifetime, new InstanceSubscriber(1, i => handlerWasCalled = true).OnFoo);
+            lifetime = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            source.Raise(this, EventArgs.Empty);
+            handlerWasCalled.Should().BeFalse();
+        }
+
         #region Test subjects
 
         class Publisher
@@ -254,7 +287,7 @@ namespace WeakEvent.Tests
                 _onFoo = onFoo;
             }
 
-            private void OnFoo(object sender, EventArgs e)
+            public void OnFoo(object sender, EventArgs e)
             {
                 _onFoo(_id);
             }

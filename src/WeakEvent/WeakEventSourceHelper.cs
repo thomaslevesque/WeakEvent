@@ -38,6 +38,7 @@ namespace WeakEvent
         }
 
         public static void Subscribe<TDelegateCollection, TOpenEventHandler, TStrongHandler>(
+            object lifetimeObject,
             ref TDelegateCollection handlers,
             Delegate handler)
             where TDelegateCollection : DelegateCollectionBase<TOpenEventHandler, TStrongHandler>, new()
@@ -53,12 +54,13 @@ namespace WeakEvent
             LazyInitializer.EnsureInitialized(ref handlers);
             lock (handlers)
             {
-                foreach (var h in singleHandlers)
-                    handlers.Add(h);
+                foreach (var singleHandler in singleHandlers)
+                    handlers.Add(lifetimeObject, singleHandler);
             }
         }
 
         public static void Unsubscribe<TOpenEventHandler, TStrongHandler>(
+            object lifetimeObject,
             DelegateCollectionBase<TOpenEventHandler, TStrongHandler> handlers,
             Delegate handler)
             where TOpenEventHandler : Delegate
@@ -77,7 +79,7 @@ namespace WeakEvent
             {
                 foreach (var singleHandler in singleHandlers)
                 {
-                    handlers.Remove(singleHandler);
+                    handlers.Remove(lifetimeObject, singleHandler);
                 }
 
                 handlers.CollectDeleted();
