@@ -58,7 +58,7 @@ namespace WeakEvent
 
         private List<WeakDelegate<TOpenEventHandler, TStrongHandler>> _delegates;
 
-        private Dictionary<int, List<int>> _index;
+        private readonly Dictionary<int, List<int>> _index;
 
         private int _deletedCount;
 
@@ -66,7 +66,7 @@ namespace WeakEvent
 
         private readonly Func<object, TOpenEventHandler, TStrongHandler> _createStrongHandler;
 
-        public DelegateCollectionBase(Func<object, TOpenEventHandler, TStrongHandler> createStrongHandler)
+        protected DelegateCollectionBase(Func<object, TOpenEventHandler, TStrongHandler> createStrongHandler)
         {
             _delegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>>();
             _index = new Dictionary<int, List<int>>();
@@ -92,8 +92,7 @@ namespace WeakEvent
             for (int i = indices.Count - 1; i >= 0; i--)
             {
                 int index = indices[i];
-                if (_delegates[index] != null &&
-                    _delegates[index].IsMatch(singleHandler))
+                if (_delegates[index]?.IsMatch(singleHandler) == true)
                 {
                     _delegates[index] = null;
                     _deletedCount++;
@@ -118,7 +117,7 @@ namespace WeakEvent
             if (_deletedCount < _delegates.Count / 4)
                 return;
 
-            Dictionary<int, int> newIndices = new Dictionary<int, int>();
+            var newIndices = new Dictionary<int, int>();
             var newDelegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>>();
             int oldIndex = 0;
             int newIndex = 0;
@@ -190,7 +189,7 @@ namespace WeakEvent
 
             if (lifetimeObject is null || target is null || lifetimeObject == target)
                 return;
-            
+
             LazyInitializer.EnsureInitialized(ref _targetLifetimes);
             var targets = _targetLifetimes.GetOrCreateValue(lifetimeObject);
             targets.Add(target);
@@ -200,7 +199,7 @@ namespace WeakEvent
         {
             if (lifetimeObject is null || target is null || lifetimeObject == target)
                 return;
-            
+
             if (_targetLifetimes is null)
                 return;
 
