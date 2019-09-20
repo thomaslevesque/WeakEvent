@@ -259,6 +259,36 @@ namespace WeakEvent.Tests
             handlerWasCalled.Should().BeFalse();
         }
 
+        [Fact]
+        public void Second_Handler_With_Same_Lifetime_Stays_Alive_If_First_Handler_Is_Removed()
+        {
+            var source = new WeakEventSource<EventArgs>();
+            object lifetime = new object();
+
+            var handlerCalls = new List<int>();
+
+            EventHandler<EventArgs> handler1 = (sender, e) => handlerCalls.Add(1);
+            EventHandler<EventArgs> handler2 = (sender, e) => handlerCalls.Add(2);
+
+            source.Subscribe(lifetime, handler1);
+            source.Subscribe(lifetime, handler2);
+            source.Raise(this, EventArgs.Empty);
+            handlerCalls.Should().Equal(1, 2);
+
+            handlerCalls.Clear();
+            source.Unsubscribe(lifetime, handler1);
+            handler1 = null;
+            handler2 = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            source.Raise(this, EventArgs.Empty);
+            handlerCalls.Should().Equal(2);
+
+            GC.KeepAlive(lifetime);
+        }
+
         #region Test subjects
 
         class Publisher
