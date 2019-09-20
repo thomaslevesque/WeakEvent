@@ -226,6 +226,69 @@ namespace WeakEvent.Tests
             pub.Raise();
         }
 
+        [Fact]
+        public void Subscriber_Stays_Alive_If_Lifetime_Object_Is_Alive()
+        {
+            bool handlerWasCalled = false;
+            object lifetime = new object();
+            var source = new WeakEventSource<EventArgs>();
+            source.Subscribe(lifetime, new InstanceSubscriber(1, i => handlerWasCalled = true).OnFoo);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            source.Raise(this, EventArgs.Empty);
+            handlerWasCalled.Should().BeTrue();
+
+            GC.KeepAlive(lifetime);
+        }
+
+        [Fact]
+        public void Subscriber_Dies_If_Lifetime_Object_Is_Dead()
+        {
+            bool handlerWasCalled = false;
+            var source = new WeakEventSource<EventArgs>();
+            object lifetime = new object();
+            source.Subscribe(lifetime, new InstanceSubscriber(1, i => handlerWasCalled = true).OnFoo);
+            lifetime = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            source.Raise(this, EventArgs.Empty);
+            handlerWasCalled.Should().BeFalse();
+        }
+
+        [Fact]
+        public void Second_Handler_With_Same_Lifetime_Stays_Alive_If_First_Handler_Is_Removed()
+        {
+            var source = new WeakEventSource<EventArgs>();
+            object lifetime = new object();
+
+            var handlerCalls = new List<int>();
+
+            EventHandler<EventArgs> handler1 = (sender, e) => handlerCalls.Add(1);
+            EventHandler<EventArgs> handler2 = (sender, e) => handlerCalls.Add(2);
+
+            source.Subscribe(lifetime, handler1);
+            source.Subscribe(lifetime, handler2);
+            source.Raise(this, EventArgs.Empty);
+            handlerCalls.Should().Equal(1, 2);
+
+            handlerCalls.Clear();
+            source.Unsubscribe(lifetime, handler1);
+            handler1 = null;
+            handler2 = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            source.Raise(this, EventArgs.Empty);
+            handlerCalls.Should().Equal(2);
+
+            GC.KeepAlive(lifetime);
+        }
+
         #region Test subjects
 
         class Publisher
@@ -254,7 +317,7 @@ namespace WeakEvent.Tests
                 _onFoo = onFoo;
             }
 
-            private void OnFoo(object sender, EventArgs e)
+            public void OnFoo(object sender, EventArgs e)
             {
                 _onFoo(_id);
             }

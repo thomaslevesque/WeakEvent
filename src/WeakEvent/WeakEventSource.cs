@@ -4,7 +4,7 @@ using static WeakEvent.WeakEventSourceHelper;
 namespace WeakEvent
 {
     public class WeakEventSource<TEventArgs>
-#if NET40 || NET35
+#if NET40
         where TEventArgs : EventArgs
 #endif
     {
@@ -21,12 +21,22 @@ namespace WeakEvent
 
         public void Subscribe(EventHandler<TEventArgs> handler)
         {
-            Subscribe<DelegateCollection, OpenEventHandler, StrongHandler>(ref _handlers, handler);
+            Subscribe(null, handler);
+        }
+
+        public void Subscribe(object lifetimeObject, EventHandler<TEventArgs> handler)
+        {
+            Subscribe<DelegateCollection, OpenEventHandler, StrongHandler>(lifetimeObject, ref _handlers, handler);
         }
 
         public void Unsubscribe(EventHandler<TEventArgs> handler)
         {
-            Unsubscribe<OpenEventHandler, StrongHandler>(_handlers, handler);
+            Unsubscribe(null, handler);
+        }
+
+        public void Unsubscribe(object lifetimeObject, EventHandler<TEventArgs> handler)
+        {
+            Unsubscribe<OpenEventHandler, StrongHandler>(lifetimeObject, _handlers, handler);
         }
 
         private delegate void OpenEventHandler(object target, object sender, TEventArgs e);

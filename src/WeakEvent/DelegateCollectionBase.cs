@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace WeakEvent
 {
@@ -18,7 +20,7 @@ namespace WeakEvent
         private static readonly ConcurrentDictionary<MethodInfo, TOpenEventHandler> OpenHandlerCache =
             new ConcurrentDictionary<MethodInfo, TOpenEventHandler>();
 
-        private static readonly Type _eventArgsType = typeof(TOpenEventHandler)
+        private static readonly Type EventArgsType = typeof(TOpenEventHandler)
             .GetRuntimeMethods()
             .Single(m => m.Name == "Invoke")
             .GetParameters()
@@ -29,7 +31,7 @@ namespace WeakEvent
         {
             var target = Expression.Parameter(typeof(object), "target");
             var sender = Expression.Parameter(typeof(object), "sender");
-            var e = Expression.Parameter(_eventArgsType, "e");
+            var e = Expression.Parameter(EventArgsType, "e");
 
             if (method.IsStatic)
             {
@@ -56,49 +58,52 @@ namespace WeakEvent
 
         private List<WeakDelegate<TOpenEventHandler, TStrongHandler>> _delegates;
 
-        private Dictionary<long, List<int>> _index;
+        private readonly Dictionary<int, List<int>> _index;
 
         private int _deletedCount;
 
+        private ConditionalWeakTable<object, List<object>> _targetLifetimes;
+
         private readonly Func<object, TOpenEventHandler, TStrongHandler> _createStrongHandler;
 
-        public DelegateCollectionBase(Func<object, TOpenEventHandler, TStrongHandler> createStrongHandler)
+        protected DelegateCollectionBase(Func<object, TOpenEventHandler, TStrongHandler> createStrongHandler)
         {
             _delegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>>();
-            _index = new Dictionary<long, List<int>>();
+            _index = new Dictionary<int, List<int>>();
             _createStrongHandler = createStrongHandler;
         }
 
-        public void Add(Delegate singleHandler)
+        public void Add(object lifetimeObject, Delegate singleHandler)
         {
             var openHandler = OpenHandlerCache.GetOrAdd(singleHandler.GetMethodInfo(), CreateOpenHandler);
             _delegates.Add(new WeakDelegate<TOpenEventHandler, TStrongHandler>(singleHandler, openHandler, _createStrongHandler));
             var index = _delegates.Count - 1;
             AddToIndex(singleHandler, index);
+            KeepTargetAlive(lifetimeObject, singleHandler.Target);
         }
 
-        public void Remove(Delegate singleHandler)
+        public void Remove(object lifetimeObject, Delegate singleHandler)
         {
             var hashCode = GetDelegateHashCode(singleHandler);
 
-            if (!_index.ContainsKey(hashCode))
+            if (!_index.TryGetValue(hashCode, out var indices))
                 return;
 
-            var indices = _index[hashCode];
             for (int i = indices.Count - 1; i >= 0; i--)
             {
                 int index = indices[i];
-                if (_delegates[index] != null &&
-                    _delegates[index].IsMatch(singleHandler))
+                if (_delegates[index]?.IsMatch(singleHandler) == true)
                 {
                     _delegates[index] = null;
                     _deletedCount++;
-                    indices.Remove(i);
+                    indices.RemoveAt(i);
                 }
             }
 
             if (indices.Count == 0)
                 _index.Remove(hashCode);
+
+            StopKeepingTargetAlive(lifetimeObject, singleHandler.Target);
         }
 
         public void Invalidate(int index)
@@ -112,7 +117,7 @@ namespace WeakEvent
             if (_deletedCount < _delegates.Count / 4)
                 return;
 
-            Dictionary<int, int> newIndices = new Dictionary<int, int>();
+            var newIndices = new Dictionary<int, int>();
             var newDelegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>>();
             int oldIndex = 0;
             int newIndex = 0;
@@ -135,7 +140,8 @@ namespace WeakEvent
             {
                 _index[hashCode] = _index[hashCode]
                     .Where(oi => newIndices.ContainsKey(oi))
-                    .Select(oi => newIndices[oi]).ToList();
+                    .Select(oi => newIndices[oi])
+                    .ToList();
             }
 
             _deletedCount = 0;
@@ -174,6 +180,31 @@ namespace WeakEvent
                 _index[hashCode].Add(index);
             else
                 _index.Add(hashCode, new List<int> { index });
+        }
+
+        private void KeepTargetAlive(object lifetimeObject, object target)
+        {
+            // If the lifetime object isn't the same as the target,
+            // keep the target alive while the lifetime object is alive
+
+            if (lifetimeObject is null || target is null || lifetimeObject == target)
+                return;
+
+            LazyInitializer.EnsureInitialized(ref _targetLifetimes);
+            var targets = _targetLifetimes.GetOrCreateValue(lifetimeObject);
+            targets.Add(target);
+        }
+
+        private void StopKeepingTargetAlive(object lifetimeObject, object target)
+        {
+            if (lifetimeObject is null || target is null || lifetimeObject == target)
+                return;
+
+            if (_targetLifetimes is null)
+                return;
+
+            if (_targetLifetimes.TryGetValue(lifetimeObject, out var targets))
+                targets.Remove(target);
         }
     }
 }
