@@ -8,8 +8,8 @@ namespace WeakEvent.Tests
     {
         public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken = default)
         {
-            RegisteredWaitHandle registeredHandle = null;
-            CancellationTokenRegistration tokenRegistration = default(CancellationTokenRegistration);
+            RegisteredWaitHandle? registeredHandle = null;
+            CancellationTokenRegistration tokenRegistration = default;
             try
             {
                 var tcs = new TaskCompletionSource<bool>();

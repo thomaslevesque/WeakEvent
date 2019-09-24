@@ -2,6 +2,10 @@
 
     <PropertyGroup>
         <TargetFrameworks>netcoreapp1.0;netcoreapp2.0;net461</TargetFrameworks>
+        <LangVersion>8.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <!-- For older SDK versions -->
+        <NullableContextOptions>enable</NullableContextOptions>
         <IsTestProject>true</IsTestProject>
         <!-- Because some tests fail with optimizations disabled -->
         <Optimize>true</Optimize>

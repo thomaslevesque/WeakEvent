@@ -2,6 +2,10 @@
 
     <PropertyGroup>
         <TargetFrameworks>netstandard1.3;netstandard2.0;net40;net45</TargetFrameworks>
+        <LangVersion>8.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <!-- For older SDK versions -->
+        <NullableContextOptions>enable</NullableContextOptions>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyOriginatorKeyFile>WeakEvent.snk</AssemblyOriginatorKeyFile>
         <SignAssembly>true</SignAssembly>
