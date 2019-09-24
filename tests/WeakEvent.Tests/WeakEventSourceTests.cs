@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using FluentAssertions;
 using Xunit;
@@ -30,12 +31,12 @@ namespace WeakEvent.Tests
         public void Static_Handlers_Are_Called()
         {
             var pub = new Publisher();
-            StaticSubscriber.FooWasRaised = false;
+            StaticSubscriber.CallCount = 0;
             StaticSubscriber.Subscribe(pub);
 
             pub.Raise();
 
-            StaticSubscriber.FooWasRaised.Should().BeTrue();
+            StaticSubscriber.CallCount.Should().Be(1);
         }
 
         [Fact]
@@ -63,23 +64,23 @@ namespace WeakEvent.Tests
             sub1.Subscribe(pub);
             var sub2 = new InstanceSubscriber(2, calledSubscribers.Add);
             sub2.Subscribe(pub);
-            StaticSubscriber.FooWasRaised = false;
+            StaticSubscriber.CallCount = 0;
             StaticSubscriber.Subscribe(pub);
 
             // Make sure they really were subscribed
             pub.Raise();
             calledSubscribers.Should().Equal(1, 2);
-            StaticSubscriber.FooWasRaised.Should().BeTrue();
+            StaticSubscriber.CallCount.Should().Be(1);
 
             calledSubscribers.Clear();
             sub1.Unsubscribe(pub);
             pub.Raise();
             calledSubscribers.Should().Equal(2);
 
-            StaticSubscriber.FooWasRaised = false;
+            StaticSubscriber.CallCount = 0;
             StaticSubscriber.Unsubscribe(pub);
             pub.Raise();
-            StaticSubscriber.FooWasRaised.Should().BeFalse();
+            StaticSubscriber.CallCount.Should().Be(0);
 
             calledSubscribers.Clear();
             sub2.Unsubscribe(pub);
@@ -89,6 +90,40 @@ namespace WeakEvent.Tests
             // Make sure subscribers are not collected before the end of the test
             GC.KeepAlive(sub1);
             GC.KeepAlive(sub2);
+        }
+
+        [Fact]
+        public void Only_The_Last_Matching_Handler_Is_Unsubscribed()
+        {
+            // Subscribe the same handlers multiple times
+            var pub = new Publisher();
+            var calledSubscribers = new List<int>();
+            var sub1 = new InstanceSubscriber(1, calledSubscribers.Add);
+            sub1.Subscribe(pub);
+            sub1.Subscribe(pub);
+            StaticSubscriber.CallCount = 0;
+            StaticSubscriber.Subscribe(pub);
+            StaticSubscriber.Subscribe(pub);
+
+            // Make sure they really were subscribed
+            pub.Raise();
+            calledSubscribers.Should().Equal(1, 1);
+            StaticSubscriber.CallCount.Should().Be(2);
+
+            // Unsubscribe one instance handler
+            calledSubscribers.Clear();
+            sub1.Unsubscribe(pub);
+            pub.Raise();
+            //calledSubscribers.Should().Equal(1);
+
+            // Unsubscribe one static handler
+            StaticSubscriber.CallCount = 0;
+            StaticSubscriber.Unsubscribe(pub);
+            pub.Raise();
+            StaticSubscriber.CallCount.Should().Be(1);
+
+            // Make sure subscribers are not collected before the end of the test
+            GC.KeepAlive(sub1);
         }
 
         [Fact]
@@ -143,22 +178,74 @@ namespace WeakEvent.Tests
             GC.KeepAlive(sub1);
         }
 
+        [Theory]
+        // Match
+        [InlineData("abc", "abccbca", "bc", "abcca")]
+        [InlineData("abc", "abccbca", "abc", "cbca")]
+        [InlineData("abc", "abccbca", "c", "abccba")]
+        [InlineData("abc", "abccbca", "ccb", "abca")]
+        [InlineData("abc", "abccbca", "ca", "abccb")]
+        [InlineData("abc", "abccbca", "abccb", "ca")]
+        [InlineData("abc", "aacabcbcbc", "abcb", "aaccbc")]
+        // No match
+        [InlineData("abcd", "abccbca", "d", "abccbca")]
+        [InlineData("abc", "abccbca", "ccc", "abccbca")]
+        [InlineData("abc", "abccbca", "cba", "abccbca")]
+        public void Multicast_Handlers_Are_Correctly_Unsubscribed(string ids, string toSubscribe, string toUnsubscribe, string expected)
+        {
+            var pub = new Publisher();
+            var calledSubscribers = new StringBuilder();
+            var handlers = new Dictionary<char, EventHandler<EventArgs>>(ids.Length);
+            foreach (char c in ids)
+            {
+                char subscriberId = c;
+                handlers[subscriberId] = (sender, e) => calledSubscribers.Append(subscriberId);
+            }
+
+            foreach (char c in toSubscribe)
+            {
+                pub.Foo += handlers[c];
+            }
+
+            pub.Raise();
+            calledSubscribers.ToString().Should().Be(toSubscribe);
+
+            calledSubscribers.Clear();
+
+            EventHandler<EventArgs> handlerToRemove = null;
+            foreach (char c in toUnsubscribe)
+            {
+                handlerToRemove += handlers[c];
+            }
+            pub.Foo -= handlerToRemove;
+
+            pub.Raise();
+            calledSubscribers.ToString().Should().Be(expected);
+        }
+
         [Fact]
-        public void Multicast_Handlers_Are_Correctly_Unsubscribed()
+        public void Different_Multicast_Handler_Is_Not_Unsubscribed()
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            EventHandler<EventArgs> handler = null;
-            handler += (sender, e) => calledSubscribers.Add(1);
-            handler += (sender, e) => calledSubscribers.Add(2);
 
-            pub.Foo += handler;
+            EventHandler<EventArgs> handler1 = (sender, e) => calledSubscribers.Add(1);
+            EventHandler<EventArgs> handler2 = (sender, e) => calledSubscribers.Add(2);
+            EventHandler<EventArgs> handler3 = (sender, e) => calledSubscribers.Add(3);
+
+            var multicastHandler = handler1 + handler3;
+
+            pub.Foo += handler1;
+            pub.Foo += (handler2 + handler3);
             pub.Raise();
 
-            pub.Foo -= handler;
+            calledSubscribers.Clear();
+
+            // Different order
+            pub.Foo -= (handler3 + handler2);
             pub.Raise();
 
-            calledSubscribers.Should().Equal(1, 2);
+            calledSubscribers.Should().Equal(1, 2, 3);
         }
 
         [Fact]
@@ -335,7 +422,7 @@ namespace WeakEvent.Tests
 
         static class StaticSubscriber
         {
-            public static bool FooWasRaised { get; set; }
+            public static int CallCount { get; set; }
 
             public static void Subscribe(Publisher pub)
             {
@@ -344,7 +431,7 @@ namespace WeakEvent.Tests
 
             private static void OnFoo(object sender, EventArgs e)
             {
-                FooWasRaised = true;
+                CallCount++;
             }
 
             public static void Unsubscribe(Publisher pub)

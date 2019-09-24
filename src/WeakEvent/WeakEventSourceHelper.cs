@@ -48,14 +48,12 @@ namespace WeakEvent
             if (handler is null)
                 throw new ArgumentNullException(nameof(handler));
 
-            var singleHandlers = handler
-                .GetInvocationList();
+            var invocationList = handler.GetInvocationList();
 
             LazyInitializer.EnsureInitialized(ref handlers);
             lock (handlers)
             {
-                foreach (var singleHandler in singleHandlers)
-                    handlers.Add(lifetimeObject, singleHandler);
+                handlers.Add(lifetimeObject, invocationList);
             }
         }
 
@@ -72,16 +70,11 @@ namespace WeakEvent
             if (handlers is null)
                 return;
 
-            var singleHandlers = handler
-                .GetInvocationList();
+            var invocationList = handler.GetInvocationList();
 
             lock (handlers)
             {
-                foreach (var singleHandler in singleHandlers)
-                {
-                    handlers.Remove(lifetimeObject, singleHandler);
-                }
-
+                handlers.Remove(lifetimeObject, invocationList);
                 handlers.CollectDeleted();
             }
         }
