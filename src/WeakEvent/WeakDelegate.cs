@@ -7,15 +7,15 @@ namespace WeakEvent
         where TOpenEventHandler : Delegate
         where TStrongHandler : struct
     {
-        private readonly WeakReference _weakTarget;
+        private readonly WeakReference? _weakTarget;
         private readonly MethodInfo _method;
         private readonly TOpenEventHandler _openHandler;
-        private readonly Func<object, TOpenEventHandler, TStrongHandler> _createStrongHandler;
+        private readonly Func<object?, TOpenEventHandler, TStrongHandler> _createStrongHandler;
 
         public WeakDelegate(
             Delegate handler,
             TOpenEventHandler openHandler,
-            Func<object, TOpenEventHandler, TStrongHandler> createStrongHandler)
+            Func<object?, TOpenEventHandler, TStrongHandler> createStrongHandler)
         {
             _weakTarget = handler.Target != null ? new WeakReference(handler.Target) : null;
             _method = handler.GetMethodInfo();
@@ -25,7 +25,7 @@ namespace WeakEvent
 
         public TStrongHandler? TryGetStrongHandler()
         {
-            object target = null;
+            object? target = null;
             if (_weakTarget != null)
             {
                 target = _weakTarget.Target;

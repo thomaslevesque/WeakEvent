@@ -44,7 +44,7 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            EventHandler<EventArgs> handler = null;
+            EventHandler<EventArgs>? handler = null;
             handler += (sender, e) => calledSubscribers.Add(1);
             handler += (sender, e) => calledSubscribers.Add(2);
             handler += (sender, e) => calledSubscribers.Add(3);
@@ -133,7 +133,7 @@ namespace WeakEvent.Tests
             var calledSubscribers = new List<int>();
             var sub1 = new InstanceSubscriber(1, calledSubscribers.Add);
             sub1.Subscribe(pub);
-            var sub2 = new InstanceSubscriber(2, calledSubscribers.Add);
+            InstanceSubscriber? sub2 = new InstanceSubscriber(2, calledSubscribers.Add);
             sub2.Subscribe(pub);
             var weakSub1 = new WeakReference(sub1);
             var weakSub2 = new WeakReference(sub2);
@@ -212,7 +212,7 @@ namespace WeakEvent.Tests
 
             calledSubscribers.Clear();
 
-            EventHandler<EventArgs> handlerToRemove = null;
+            EventHandler<EventArgs>? handlerToRemove = null;
             foreach (char c in toUnsubscribe)
             {
                 handlerToRemove += handlers[c];
@@ -335,7 +335,7 @@ namespace WeakEvent.Tests
         {
             bool handlerWasCalled = false;
             var source = new WeakEventSource<EventArgs>();
-            object lifetime = new object();
+            object? lifetime = new object();
             source.Subscribe(lifetime, new InstanceSubscriber(1, i => handlerWasCalled = true).OnFoo);
             lifetime = null;
 
@@ -354,8 +354,8 @@ namespace WeakEvent.Tests
 
             var handlerCalls = new List<int>();
 
-            EventHandler<EventArgs> handler1 = (sender, e) => handlerCalls.Add(1);
-            EventHandler<EventArgs> handler2 = (sender, e) => handlerCalls.Add(2);
+            EventHandler<EventArgs>? handler1 = (sender, e) => handlerCalls.Add(1);
+            EventHandler<EventArgs>? handler2 = (sender, e) => handlerCalls.Add(2);
 
             source.Subscribe(lifetime, handler1);
             source.Subscribe(lifetime, handler2);

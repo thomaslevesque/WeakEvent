@@ -45,7 +45,7 @@ namespace WeakEvent.Tests
         {
             var pub = new Publisher();
             var calledSubscribers = new List<int>();
-            AsyncEventHandler<EventArgs> handler = null;
+            AsyncEventHandler<EventArgs>? handler = null;
             handler += (sender, e) => AddAsync(calledSubscribers, 1);
             handler += (sender, e) => AddAsync(calledSubscribers, 2);
             handler += (sender, e) => AddAsync(calledSubscribers, 3);
@@ -134,7 +134,7 @@ namespace WeakEvent.Tests
             var calledSubscribers = new List<int>();
             var sub1 = new InstanceSubscriber(1, i =>  AddAsync(calledSubscribers, i));
             sub1.Subscribe(pub);
-            var sub2 = new InstanceSubscriber(2, i => AddAsync(calledSubscribers, i));
+            InstanceSubscriber? sub2 = new InstanceSubscriber(2, i => AddAsync(calledSubscribers, i));
             sub2.Subscribe(pub);
             var weakSub1 = new WeakReference(sub1);
             var weakSub2 = new WeakReference(sub2);
@@ -217,7 +217,7 @@ namespace WeakEvent.Tests
 
             calledSubscribers.Clear();
 
-            AsyncEventHandler<EventArgs> handlerToRemove = null;
+            AsyncEventHandler<EventArgs>? handlerToRemove = null;
             foreach (char c in toUnsubscribe)
             {
                 handlerToRemove += handlers[c];
@@ -342,7 +342,7 @@ namespace WeakEvent.Tests
         {
             bool handlerWasCalled = false;
             var source = new AsyncWeakEventSource<EventArgs>();
-            object lifetime = new object();
+            object? lifetime = new object();
             source.Subscribe(lifetime, new InstanceSubscriber(1, async i => 
             {
                 handlerWasCalled = true;

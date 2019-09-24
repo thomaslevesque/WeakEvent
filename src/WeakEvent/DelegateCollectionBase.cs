@@ -58,7 +58,7 @@ namespace WeakEvent
         /// <summary>
         /// List of weak delegates subscribed to the event.
         /// </summary>
-        private List<WeakDelegate<TOpenEventHandler, TStrongHandler>> _delegates;
+        private List<WeakDelegate<TOpenEventHandler, TStrongHandler>?> _delegates;
 
         /// <summary>
         /// Quick lookup index for individual handlers.
@@ -70,18 +70,18 @@ namespace WeakEvent
 
         private int _deletedCount;
 
-        private ConditionalWeakTable<object, List<object>> _targetLifetimes;
+        private ConditionalWeakTable<object, List<object>>? _targetLifetimes;
 
-        private readonly Func<object, TOpenEventHandler, TStrongHandler> _createStrongHandler;
+        private readonly Func<object?, TOpenEventHandler, TStrongHandler> _createStrongHandler;
 
-        protected DelegateCollectionBase(Func<object, TOpenEventHandler, TStrongHandler> createStrongHandler)
+        protected DelegateCollectionBase(Func<object?, TOpenEventHandler, TStrongHandler> createStrongHandler)
         {
-            _delegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>>();
+            _delegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>?>();
             _index = new Dictionary<int, List<int>>();
             _createStrongHandler = createStrongHandler;
         }
 
-        public void Add(object lifetimeObject, Delegate[] invocationList)
+        public void Add(object? lifetimeObject, Delegate[] invocationList)
         {
             foreach (var singleHandler in invocationList)
             {
@@ -99,7 +99,7 @@ namespace WeakEvent
         /// <remarks>
         /// Follows the same logic as MulticastDelegate.Remove.
         /// </remarks>
-        public void Remove(object lifetimeObject, Delegate[] invocationList)
+        public void Remove(object? lifetimeObject, Delegate[] invocationList)
         {
             int matchIndex = GetIndexOfInvocationListLastOccurrence(invocationList);
 
@@ -141,12 +141,13 @@ namespace WeakEvent
             // Make a new list with only live delegates, keeping track of the old and new indices
             int newCount = _delegates.Count - _deletedCount;
             var newIndices = new Dictionary<int, int>(newCount);
-            var newDelegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>>(newCount);
+            var newDelegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>?>(newCount);
             for (int oldIndex = 0; oldIndex < _delegates.Count; oldIndex++)
             {
-                if (_delegates[oldIndex] != null)
+                var oldDelegate = _delegates[oldIndex];
+                if (oldDelegate != null)
                 {
-                    newDelegates.Add(_delegates[oldIndex]);
+                    newDelegates.Add(oldDelegate);
                     newIndices.Add(oldIndex, newIndices.Count);
                 }
             }
@@ -176,7 +177,7 @@ namespace WeakEvent
             _deletedCount = 0;
         }
 
-        public WeakDelegate<TOpenEventHandler, TStrongHandler> this[int index] => _delegates[index];
+        public WeakDelegate<TOpenEventHandler, TStrongHandler>? this[int index] => _delegates[index];
 
         public int Count => _delegates.Count;
 
@@ -197,7 +198,7 @@ namespace WeakEvent
                 _index.Add(hashCode, new List<int> { index });
         }
 
-        private void KeepTargetAlive(object lifetimeObject, object target)
+        private void KeepTargetAlive(object? lifetimeObject, object? target)
         {
             // If the lifetime object isn't the same as the target,
             // keep the target alive while the lifetime object is alive
@@ -206,11 +207,11 @@ namespace WeakEvent
                 return;
 
             LazyInitializer.EnsureInitialized(ref _targetLifetimes);
-            var targets = _targetLifetimes.GetOrCreateValue(lifetimeObject);
+            var targets = _targetLifetimes!.GetOrCreateValue(lifetimeObject);
             targets.Add(target);
         }
 
-        private void StopKeepingTargetAlive(object lifetimeObject, object target)
+        private void StopKeepingTargetAlive(object? lifetimeObject, object? target)
         {
             if (lifetimeObject is null || target is null || lifetimeObject == target)
                 return;
@@ -257,7 +258,8 @@ namespace WeakEvent
                     else if (currentIndex > 0)
                     {
                         // We have a partial match, check if it continues to match
-                        if (_delegates[currentIndex - 1].IsMatch(singleHandler))
+                        var @delegate = _delegates[currentIndex - 1];
+                        if (@delegate != null && @delegate.IsMatch(singleHandler))
                         {
                             currentIndex--;
 
@@ -288,7 +290,8 @@ namespace WeakEvent
         {
             for (int i = end; i >= start; i--)
             {
-                if (_delegates[i].IsMatch(singleHandler))
+                var @delegate = _delegates[i];
+                if (@delegate != null && @delegate.IsMatch(singleHandler))
                     return i;
             }
 
