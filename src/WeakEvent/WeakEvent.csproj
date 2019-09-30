@@ -10,6 +10,7 @@
         <AssemblyOriginatorKeyFile>WeakEvent.snk</AssemblyOriginatorKeyFile>
         <SignAssembly>true</SignAssembly>
         <MinVerVerbosity>quiet</MinVerVerbosity>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <PropertyGroup Label="Package properties">
