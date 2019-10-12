@@ -23,6 +23,7 @@
         <PackageReleaseNotes>https://github.com/thomaslevesque/WeakEvent/releases</PackageReleaseNotes>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+        <PackageIcon>assets/weakevent.png</PackageIcon>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
@@ -31,6 +32,10 @@
 
     <ItemGroup Condition="'$(TargetFramework)' != 'net45' And '$(TargetFramework)' != 'netstandard1.3' And '$(TargetFramework)' != 'netstandard2.0'">
         <Compile Remove="AsyncWeakEventSource.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="../../assets/weakevent.png" Pack="True" PackagePath="assets/weakevent.png" />
     </ItemGroup>
 
     <ItemGroup>

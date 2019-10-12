@@ -1,5 +1,7 @@
 # WeakEvent
 
+![Logo](assets/weakevent.png)
+
 [![NuGet version](https://img.shields.io/nuget/v/ThomasLevesque.WeakEvent.svg?logo=nuget)](https://www.nuget.org/packages/ThomasLevesque.WeakEvent)
 [![AppVeyor build](https://img.shields.io/appveyor/ci/thomaslevesque/weakevent.svg?logo=appveyor)](https://ci.appveyor.com/project/thomaslevesque/weakevent)
 [![AppVeyor tests](https://img.shields.io/appveyor/tests/thomaslevesque/weakevent.svg?logo=appveyor)](https://ci.appveyor.com/project/thomaslevesque/weakevent/build/tests)
@@ -70,3 +72,9 @@ public delegate void OpenFooEventHandler(object target, object sender, FooEventA
 So, when someone subscribes to our weak event by passing a normal delegate, we create a weak delegate that wraps a weak reference to
 the target, and an open-instance delegate that is bound to the original delegate's method. When we need to invoke the weak delegate,
 we check if the target is still alive, and if it is, we invoke the open-instance delegate on it.
+
+## Credits
+
+The package logo is made from two icons:
+- [Lightning bolt](https://www.iconfinder.com/icons/2682840) by Laura Reen from Iconfinder, under license [CC BY-NC 3.0](https://creativecommons.org/licenses/by-nc/3.0/)
+- [Broken link](https://thenounproject.com/term/broken-link/900264/) by Tomas Knopp from the Noun Project, under license [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
