@@ -76,7 +76,7 @@ namespace build
 
             Target("default", DependsOn("test", "pack"));
 
-            RunTargetsAndExit(RemainingArguments);
+            RunTargetsWithoutExiting(RemainingArguments);
         }
 
         private static string GetSolutionDirectory() =>
