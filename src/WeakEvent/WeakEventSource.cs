@@ -12,7 +12,7 @@ namespace WeakEvent
         where TEventArgs : EventArgs
 #endif
     {
-        private DelegateCollection? _handlers;
+        internal DelegateCollection? _handlers;
 
         /// <summary>
         /// Raises the event by invoking each handler that hasn't been garbage collected.
@@ -76,9 +76,9 @@ namespace WeakEvent
             Unsubscribe<OpenEventHandler, StrongHandler>(lifetimeObject, _handlers, handler);
         }
 
-        private delegate void OpenEventHandler(object? target, object? sender, TEventArgs e);
+        internal delegate void OpenEventHandler(object? target, object? sender, TEventArgs e);
 
-        private struct StrongHandler
+        internal struct StrongHandler
         {
             private readonly object? _target;
             private readonly OpenEventHandler _openHandler;
@@ -95,7 +95,7 @@ namespace WeakEvent
             }
         }
 
-        private class DelegateCollection : DelegateCollectionBase<OpenEventHandler, StrongHandler>
+        internal class DelegateCollection : DelegateCollectionBase<OpenEventHandler, StrongHandler>
         {
             public DelegateCollection()
                 : base((target, openHandler) => new StrongHandler(target, openHandler))

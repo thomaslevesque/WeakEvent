@@ -31,7 +31,8 @@ namespace WeakEvent
                     }
                 }
 
-                handlers.CollectDeleted();
+                handlers.CompactHandlerList();
+                handlers.ResetDeadHandlerScanCountdown();
             }
 
             return validHandlers;
@@ -75,7 +76,7 @@ namespace WeakEvent
             lock (handlers)
             {
                 handlers.Remove(lifetimeObject, invocationList);
-                handlers.CollectDeleted();
+                handlers.CompactHandlerList();
             }
         }
     }

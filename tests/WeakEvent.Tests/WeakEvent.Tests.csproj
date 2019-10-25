@@ -9,6 +9,8 @@
         <IsTestProject>true</IsTestProject>
         <!-- Because some tests fail with optimizations disabled -->
         <Optimize>true</Optimize>
+        <AssemblyOriginatorKeyFile>../../src/WeakEvent/WeakEvent.snk</AssemblyOriginatorKeyFile>
+        <SignAssembly>true</SignAssembly>
     </PropertyGroup>
 
     <ItemGroup>
