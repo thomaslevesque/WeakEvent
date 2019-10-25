@@ -39,8 +39,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="WeakEvent.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e96d8e399ea86b0362e1c331bc41958ab2f77a26f2da0845e267e2946592afc52fbe03e50d7e9d2361285a07203ae9f9a7ca3820a6a920a084129acc2a0207c6785b9fad646d3b6e979b62158b603917593aa619505c2803fdd95415e2ecff9668a642c117683de2ca02cf7934df7eb92430b6b17cb508ceebce402beb1b4ae6" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
         <PackageReference Include="MinVer" Version="1.0.0-rc.1" PrivateAssets="All" />
+        <PackageReference Include="InternalsVisibleTo.MSBuild" Version="1.0.2" PrivateAssets="All" />
     </ItemGroup>
 
 </Project>
