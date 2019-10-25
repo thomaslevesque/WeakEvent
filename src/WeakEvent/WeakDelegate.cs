@@ -23,6 +23,8 @@ namespace WeakEvent
             _createStrongHandler = createStrongHandler;
         }
 
+        public bool IsAlive => _weakTarget?.IsAlive ?? true;
+
         public TStrongHandler? TryGetStrongHandler()
         {
             object? target = null;

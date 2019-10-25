@@ -55,6 +55,8 @@ namespace WeakEvent
 
         #endregion
 
+        private const int InitialDeadHandlersScanCountdown = 50;
+
         /// <summary>
         /// List of weak delegates subscribed to the event.
         /// </summary>
@@ -69,6 +71,7 @@ namespace WeakEvent
         private readonly Dictionary<int, List<int>> _index;
 
         private int _deletedCount;
+        private int _deadHandlerScanCountdown = InitialDeadHandlersScanCountdown;
 
         private ConditionalWeakTable<object, List<object>>? _targetLifetimes;
 
@@ -91,6 +94,8 @@ namespace WeakEvent
                 AddToIndex(singleHandler, index);
                 KeepTargetAlive(lifetimeObject, singleHandler.Target);
             }
+
+            TryScanDeadHandlers();
         }
 
         /// <summary>
@@ -132,9 +137,9 @@ namespace WeakEvent
             _deletedCount++;
         }
 
-        public void CollectDeleted()
+        public void CompactHandlerList()
         {
-            // Only run collection if at least 25% of the handlers are dead
+            // Only compact if at least 25% of the handlers are deleted
             if (_deletedCount < _delegates.Count / 4)
                 return;
 
@@ -175,6 +180,34 @@ namespace WeakEvent
             }
 
             _deletedCount = 0;
+        }
+
+        /// <summary>
+        /// Resets the countdown before dead handlers are scanned
+        /// </summary>
+        public void ResetDeadHandlerScanCountdown()
+        {
+            _deadHandlerScanCountdown = InitialDeadHandlersScanCountdown;
+        }
+
+        /// <summary>
+        /// Scans dead handlers if the countdown reaches 0
+        /// </summary>
+        public void TryScanDeadHandlers()
+        {
+            if (--_deadHandlerScanCountdown > 0)
+                return;
+
+            for (int i = 0; i < _delegates.Count; i++)
+            {
+                if (_delegates[i]?.IsAlive is false)
+                {
+                    Invalidate(i);
+                }
+            }
+
+            CompactHandlerList();
+            _deadHandlerScanCountdown = InitialDeadHandlersScanCountdown;
         }
 
         public WeakDelegate<TOpenEventHandler, TStrongHandler>? this[int index] => _delegates[index];
