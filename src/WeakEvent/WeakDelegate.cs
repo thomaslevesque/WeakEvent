@@ -17,7 +17,7 @@ namespace WeakEvent
             TOpenEventHandler openHandler,
             Func<object?, TOpenEventHandler, TStrongHandler> createStrongHandler)
         {
-            _weakTarget = handler.Target != null ? new WeakReference(handler.Target) : null;
+            _weakTarget = handler.Target is {} ? new WeakReference(handler.Target) : null;
             _method = handler.GetMethodInfo();
             _openHandler = openHandler;
             _createStrongHandler = createStrongHandler;
@@ -28,10 +28,10 @@ namespace WeakEvent
         public TStrongHandler? TryGetStrongHandler()
         {
             object? target = null;
-            if (_weakTarget != null)
+            if (_weakTarget is {})
             {
                 target = _weakTarget.Target;
-                if (target == null)
+                if (target is null)
                     return null;
             }
 

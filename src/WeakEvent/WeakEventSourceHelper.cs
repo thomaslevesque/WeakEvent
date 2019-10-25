@@ -22,7 +22,7 @@ namespace WeakEvent
                 for (int i = 0; i < handlers.Count; i++)
                 {
                     var weakHandler = handlers[i];
-                    if (weakHandler != null)
+                    if (weakHandler is {})
                     {
                         if (weakHandler.TryGetStrongHandler() is TStrongHandler handler)
                             validHandlers.Add(handler);

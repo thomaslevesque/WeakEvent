@@ -26,7 +26,7 @@ namespace WeakEvent.Tests
             }
             finally
             {
-                if (registeredHandle != null)
+                if (registeredHandle is {})
                     registeredHandle.Unregister(null);
                 tokenRegistration.Dispose();
             }

@@ -150,7 +150,7 @@ namespace WeakEvent
             for (int oldIndex = 0; oldIndex < _delegates.Count; oldIndex++)
             {
                 var oldDelegate = _delegates[oldIndex];
-                if (oldDelegate != null)
+                if (oldDelegate is {})
                 {
                     newDelegates.Add(oldDelegate);
                     newIndices.Add(oldIndex, newIndices.Count);
@@ -292,7 +292,7 @@ namespace WeakEvent
                     {
                         // We have a partial match, check if it continues to match
                         var @delegate = _delegates[currentIndex - 1];
-                        if (@delegate != null && @delegate.IsMatch(singleHandler))
+                        if (@delegate is {} && @delegate.IsMatch(singleHandler))
                         {
                             currentIndex--;
 
@@ -324,7 +324,7 @@ namespace WeakEvent
             for (int i = end; i >= start; i--)
             {
                 var @delegate = _delegates[i];
-                if (@delegate != null && @delegate.IsMatch(singleHandler))
+                if (@delegate is {} && @delegate.IsMatch(singleHandler))
                     return i;
             }
 
