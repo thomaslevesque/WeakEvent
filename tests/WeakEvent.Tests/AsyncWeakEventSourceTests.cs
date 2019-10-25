@@ -357,6 +357,26 @@ namespace WeakEvent.Tests
             handlerWasCalled.Should().BeFalse();
         }
 
+        [Fact]
+        public void Handler_List_Is_Compacted_Even_If_Raise_Or_Unsubscribe_Isnt_Called()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+
+            // Add many handlers (more than 50)
+            for (int i = 0; i < 120; i++)
+            {
+                source.Subscribe(new InstanceSubscriber(i, _ => Task.CompletedTask).OnFoo);
+
+                // Run GC every now and then
+                if (i % 25 is 0)
+                {
+                    GC.Collect();
+                }
+            }
+
+            source._handlers?.Count.Should().BeLessThan(50);
+        }
+
         #region Test subjects
 
         private async Task AddAsync(List<int> list, int value)
