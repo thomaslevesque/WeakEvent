@@ -64,7 +64,7 @@ namespace WeakEvent
 
         /// <summary>
         /// Quick lookup index for individual handlers.
-        /// The index is the handler's hashcode (computed by GetDelegateHashCode).
+        /// The key is the handler's hashcode (computed by GetDelegateHashCode).
         /// The value is a list of indices in _delegates where there's a weak delegate
         /// for a handler with that hashcode.
         /// </summary>
@@ -159,6 +159,7 @@ namespace WeakEvent
 
             _delegates = newDelegates;
 
+            // Update the index
             var hashCodes = _index.Keys.ToList();
             foreach (var hashCode in hashCodes)
             {
@@ -169,13 +170,24 @@ namespace WeakEvent
                 else
                 {
                     var oldIndexList = _index[hashCode];
-                    var newIndexList = new List<int>(oldIndexList.Count);
+                    List<int>? newIndexList = null;
                     foreach (var oi in oldIndexList)
                     {
                         if (newIndices.TryGetValue(oi, out int ni))
+                        {
+                            newIndexList ??= new List<int>();
                             newIndexList.Add(ni);
+                        }
                     }
-                    _index[hashCode] = newIndexList;
+
+                    if (newIndexList is null)
+                    {
+                        _index.Remove(hashCode);
+                    }
+                    else
+                    {
+                        _index[hashCode] = newIndexList;
+                    }
                 }
             }
 
