@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Runtime.CompilerServices;
 using McMaster.Extensions.CommandLineUtils;
 using static Bullseye.Targets;
@@ -76,7 +75,7 @@ namespace build
 
             Target("default", DependsOn("test", "pack"));
 
-            RunTargetsWithoutExiting(RemainingArguments);
+            RunTargetsAndExit(RemainingArguments);
         }
 
         private static string GetSolutionDirectory() =>

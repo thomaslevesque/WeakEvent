@@ -159,7 +159,7 @@ namespace WeakEvent
 
             _delegates = newDelegates;
 
-            // Update the index
+            // Rebuild the index
             var hashCodes = _index.Keys.ToList();
             foreach (var hashCode in hashCodes)
             {
