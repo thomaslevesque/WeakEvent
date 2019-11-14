@@ -377,6 +377,312 @@ namespace WeakEvent.Tests
             source._handlers?.Count.Should().BeLessThan(50);
         }
 
+        [Fact]
+        public async Task Exception_Is_Not_Swallowed_And_Handler_Is_Not_Unsubscribed_If_ExceptionHandler_Returns_None()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+            bool throwingHandlerCalled = false;
+            bool nonThrowingHandlerCalled = false;
+            source.Subscribe(ThrowingHandler);
+            source.Subscribe(NonThrowingHandler);
+            Func<Task> raise = () => source.RaiseAsync(this, EventArgs.Empty, ExceptionHandler);
+            await raise.Should().ThrowAsync<Exception>().WithMessage("Oops");
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeFalse();
+
+            // Retry, the throwing handler should still be there
+            throwingHandlerCalled = false;
+            nonThrowingHandlerCalled = false;
+            await raise.Should().ThrowAsync<Exception>().WithMessage("Oops");
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeFalse();
+
+            async Task ThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                throwingHandlerCalled = true;
+                throw new Exception("Oops");
+            }
+
+            async Task NonThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                nonThrowingHandlerCalled = true;
+            }
+
+            ExceptionHandlingFlags ExceptionHandler(Exception ex) => ExceptionHandlingFlags.None;
+        }
+
+        [Fact]
+        public async Task Exception_Is_Swallowed_If_ExceptionHandler_Returns_Handled()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+            bool throwingHandlerCalled = false;
+            bool nonThrowingHandlerCalled = false;
+
+            source.Subscribe(ThrowingHandler);
+            source.Subscribe(NonThrowingHandler);
+            Func<Task> raise = () => source.RaiseAsync(this, EventArgs.Empty, ExceptionHandler);
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            // Retry, the throwing handler should still be there
+            throwingHandlerCalled = false;
+            nonThrowingHandlerCalled = false;
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            async Task ThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                throwingHandlerCalled = true;
+                throw new Exception("Oops");
+            }
+
+            async Task NonThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                nonThrowingHandlerCalled = true;
+            }
+
+            ExceptionHandlingFlags ExceptionHandler(Exception ex) => ExceptionHandlingFlags.Handled;
+        }
+
+        [Fact]
+        public async Task Handler_Is_Unsubscribed_If_ExceptionHandler_Returns_Unsubscribe()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+            bool throwingHandlerCalled = false;
+            bool nonThrowingHandlerCalled = false;
+            source.Subscribe(ThrowingHandler);
+            source.Subscribe(NonThrowingHandler);
+            Func<Task> raise = () => source.RaiseAsync(this, EventArgs.Empty, ExceptionHandler);
+            await raise.Should().ThrowAsync<Exception>().WithMessage("Oops");
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeFalse();
+
+            // Retry, now the throwing handler should be removed
+            throwingHandlerCalled = false;
+            nonThrowingHandlerCalled = false;
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeFalse();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            async Task ThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                throwingHandlerCalled = true;
+                throw new Exception("Oops");
+            }
+
+            async Task NonThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                nonThrowingHandlerCalled = true;
+            }
+
+            ExceptionHandlingFlags ExceptionHandler(Exception ex) => ExceptionHandlingFlags.Unsubscribe;
+        }
+
+        [Fact]
+        public async Task Exception_Is_Swallowed_And_Handler_Is_Unsubscribed_If_ExceptionHandler_Returns_UnsubscribeHandled()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+            bool throwingHandlerCalled = false;
+            bool nonThrowingHandlerCalled = false;
+            source.Subscribe(ThrowingHandler);
+            source.Subscribe(NonThrowingHandler);
+            Func<Task> raise = () => source.RaiseAsync(this, EventArgs.Empty, ExceptionHandler);
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            // Retry, now the throwing handler should be removed
+            throwingHandlerCalled = false;
+            nonThrowingHandlerCalled = false;
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeFalse();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            async Task ThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                throwingHandlerCalled = true;
+                throw new Exception("Oops");
+            }
+
+            async Task NonThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                nonThrowingHandlerCalled = true;
+            }
+
+            ExceptionHandlingFlags ExceptionHandler(Exception ex) => ExceptionHandlingFlags.Unsubscribe | ExceptionHandlingFlags.Handled;
+        }
+
+        [Fact]
+        public async Task Exception_Is_Not_Swallowed_And_Handler_Is_Not_Unsubscribed_If_Async_ExceptionHandler_Returns_None()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+            bool throwingHandlerCalled = false;
+            bool nonThrowingHandlerCalled = false;
+            source.Subscribe(ThrowingHandler);
+            source.Subscribe(NonThrowingHandler);
+            Func<Task> raise = () => source.RaiseAsync(this, EventArgs.Empty, ExceptionHandler);
+            await raise.Should().ThrowAsync<Exception>().WithMessage("Oops");
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeFalse();
+
+            // Retry, the throwing handler should still be there
+            throwingHandlerCalled = false;
+            nonThrowingHandlerCalled = false;
+            await raise.Should().ThrowAsync<Exception>().WithMessage("Oops");
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeFalse();
+
+            async Task ThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                throwingHandlerCalled = true;
+                throw new Exception("Oops");
+            }
+
+            async Task NonThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                nonThrowingHandlerCalled = true;
+            }
+
+            async Task<ExceptionHandlingFlags> ExceptionHandler(Exception ex)
+            {
+                await Task.Yield();
+                return ExceptionHandlingFlags.None;
+            }
+        }
+
+        [Fact]
+        public async Task Exception_Is_Swallowed_If_Async_ExceptionHandler_Returns_Handled()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+            bool throwingHandlerCalled = false;
+            bool nonThrowingHandlerCalled = false;
+
+            source.Subscribe(ThrowingHandler);
+            source.Subscribe(NonThrowingHandler);
+            Func<Task> raise = () => source.RaiseAsync(this, EventArgs.Empty, ExceptionHandler);
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            // Retry, the throwing handler should still be there
+            throwingHandlerCalled = false;
+            nonThrowingHandlerCalled = false;
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            async Task ThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                throwingHandlerCalled = true;
+                throw new Exception("Oops");
+            }
+
+            async Task NonThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                nonThrowingHandlerCalled = true;
+            }
+
+            async Task<ExceptionHandlingFlags> ExceptionHandler(Exception ex)
+            {
+                await Task.Yield();
+                return ExceptionHandlingFlags.Handled;
+            }
+        }
+
+        [Fact]
+        public async Task Handler_Is_Unsubscribed_If_Async_ExceptionHandler_Returns_Unsubscribe()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+            bool throwingHandlerCalled = false;
+            bool nonThrowingHandlerCalled = false;
+            source.Subscribe(ThrowingHandler);
+            source.Subscribe(NonThrowingHandler);
+            Func<Task> raise = () => source.RaiseAsync(this, EventArgs.Empty, ExceptionHandler);
+            await raise.Should().ThrowAsync<Exception>().WithMessage("Oops");
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeFalse();
+
+            // Retry, now the throwing handler should be removed
+            throwingHandlerCalled = false;
+            nonThrowingHandlerCalled = false;
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeFalse();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            async Task ThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                throwingHandlerCalled = true;
+                throw new Exception("Oops");
+            }
+
+            async Task NonThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                nonThrowingHandlerCalled = true;
+            }
+
+            async Task<ExceptionHandlingFlags> ExceptionHandler(Exception ex)
+            {
+                await Task.Yield();
+                return ExceptionHandlingFlags.Unsubscribe;
+            }
+        }
+
+        [Fact]
+        public async Task Exception_Is_Swallowed_And_Handler_Is_Unsubscribed_If_Async_ExceptionHandler_Returns_UnsubscribeHandled()
+        {
+            var source = new AsyncWeakEventSource<EventArgs>();
+            bool throwingHandlerCalled = false;
+            bool nonThrowingHandlerCalled = false;
+            source.Subscribe(ThrowingHandler);
+            source.Subscribe(NonThrowingHandler);
+            Func<Task> raise = () => source.RaiseAsync(this, EventArgs.Empty, ExceptionHandler);
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeTrue();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            // Retry, now the throwing handler should be removed
+            throwingHandlerCalled = false;
+            nonThrowingHandlerCalled = false;
+            await raise.Should().NotThrowAsync();
+            throwingHandlerCalled.Should().BeFalse();
+            nonThrowingHandlerCalled.Should().BeTrue();
+
+            async Task ThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                throwingHandlerCalled = true;
+                throw new Exception("Oops");
+            }
+
+            async Task NonThrowingHandler(object sender, EventArgs e)
+            {
+                await Task.Yield();
+                nonThrowingHandlerCalled = true;
+            }
+
+            async Task<ExceptionHandlingFlags> ExceptionHandler(Exception ex)
+            {
+                await Task.Yield();
+                return ExceptionHandlingFlags.Unsubscribe | ExceptionHandlingFlags.Handled;
+            }
+        }
+
         #region Test subjects
 
         private async Task AddAsync(List<int> list, int value)
