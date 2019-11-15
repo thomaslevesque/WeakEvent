@@ -10,7 +10,7 @@ namespace WeakEvent
         public static IEnumerable<TStrongHandler> GetValidHandlers<TOpenEventHandler, TStrongHandler>(
             DelegateCollectionBase<TOpenEventHandler, TStrongHandler>? handlers)
             where TOpenEventHandler : Delegate
-            where TStrongHandler : struct
+            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
         {
             if (handlers is null)
                 return Enumerable.Empty<TStrongHandler>();
@@ -44,7 +44,7 @@ namespace WeakEvent
             Delegate handler)
             where TDelegateCollection : DelegateCollectionBase<TOpenEventHandler, TStrongHandler>, new()
             where TOpenEventHandler : Delegate
-            where TStrongHandler : struct
+            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
         {
             if (handler is null)
                 throw new ArgumentNullException(nameof(handler));
@@ -59,11 +59,10 @@ namespace WeakEvent
         }
 
         public static void Unsubscribe<TOpenEventHandler, TStrongHandler>(
-            object? lifetimeObject,
             DelegateCollectionBase<TOpenEventHandler, TStrongHandler>? handlers,
             Delegate handler)
             where TOpenEventHandler : Delegate
-            where TStrongHandler : struct
+            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
         {
             if (handler is null)
                 throw new ArgumentNullException(nameof(handler));
@@ -75,9 +74,31 @@ namespace WeakEvent
 
             lock (handlers)
             {
-                handlers.Remove(lifetimeObject, invocationList);
+                handlers.Remove(invocationList);
                 handlers.CompactHandlerList();
             }
+        }
+
+        public static bool HandleException<TOpenEventHandler, TStrongHandler>(
+            DelegateCollectionBase<TOpenEventHandler, TStrongHandler>? handlers,
+            TStrongHandler handler,
+            ExceptionHandlingFlags handlingFlags)
+            where TOpenEventHandler : Delegate
+            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
+        {
+            if ((handlingFlags & ExceptionHandlingFlags.Unsubscribe) != 0)
+            {
+                if (handlers is {})
+                {
+                    lock (handlers)
+                    {
+                        handlers.Remove(handler);
+                        handlers.CompactHandlerList();
+                    }
+                }
+            }
+
+            return (handlingFlags & ExceptionHandlingFlags.Handled) != 0;
         }
     }
 }

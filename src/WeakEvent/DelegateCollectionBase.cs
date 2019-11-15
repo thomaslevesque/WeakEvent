@@ -11,7 +11,7 @@ namespace WeakEvent
 {
     internal abstract class DelegateCollectionBase<TOpenEventHandler, TStrongHandler>
         where TOpenEventHandler : Delegate
-        where TStrongHandler : struct
+        where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
     {
         #region Open handler generation and cache
 
@@ -75,9 +75,9 @@ namespace WeakEvent
 
         private ConditionalWeakTable<object, List<object>>? _targetLifetimes;
 
-        private readonly Func<object?, TOpenEventHandler, TStrongHandler> _createStrongHandler;
+        private readonly StrongHandlerFactory<TOpenEventHandler, TStrongHandler> _createStrongHandler;
 
-        protected DelegateCollectionBase(Func<object?, TOpenEventHandler, TStrongHandler> createStrongHandler)
+        protected DelegateCollectionBase(StrongHandlerFactory<TOpenEventHandler, TStrongHandler> createStrongHandler)
         {
             _delegates = new List<WeakDelegate<TOpenEventHandler, TStrongHandler>?>();
             _index = new Dictionary<int, List<int>>();
@@ -89,7 +89,7 @@ namespace WeakEvent
             foreach (var singleHandler in invocationList)
             {
                 var openHandler = OpenHandlerCache.GetOrAdd(singleHandler.GetMethodInfo(), CreateOpenHandler);
-                _delegates.Add(new WeakDelegate<TOpenEventHandler, TStrongHandler>(singleHandler, openHandler, _createStrongHandler));
+                _delegates.Add(new WeakDelegate<TOpenEventHandler, TStrongHandler>(lifetimeObject, singleHandler, openHandler, _createStrongHandler));
                 var index = _delegates.Count - 1;
                 AddToIndex(singleHandler, index);
                 KeepTargetAlive(lifetimeObject, singleHandler.Target);
@@ -104,7 +104,7 @@ namespace WeakEvent
         /// <remarks>
         /// Follows the same logic as MulticastDelegate.Remove.
         /// </remarks>
-        public void Remove(object? lifetimeObject, Delegate[] invocationList)
+        public void Remove(Delegate[] invocationList)
         {
             int matchIndex = GetIndexOfInvocationListLastOccurrence(invocationList);
 
@@ -115,6 +115,7 @@ namespace WeakEvent
             {
                 var singleHandler = invocationList[invocationIndex];
                 var index = matchIndex + invocationIndex;
+                var weakDelegate = _delegates[index];
                 _delegates[index] = null;
                 var hashCode = GetDelegateHashCode(singleHandler);
                 if (_index.TryGetValue(hashCode, out var indices))
@@ -127,7 +128,30 @@ namespace WeakEvent
                 }
 
                 _deletedCount++;
-                StopKeepingTargetAlive(lifetimeObject, singleHandler.Target);
+                StopKeepingTargetAlive(weakDelegate?.LifetimeObject, singleHandler.Target);
+            }
+        }
+
+        public void Remove(TStrongHandler handler)
+        {
+            for (int i = 0; i < _delegates.Count; i++)
+            {
+                var @delegate = _delegates[i];
+                if (@delegate is {} && @delegate.IsMatch(handler))
+                {
+                    _delegates[i] = null;
+                    var hashCode = GetStrongHandlerHashCode(handler);
+                    if (_index.TryGetValue(hashCode, out var indices))
+                    {
+                        int lastIndex = indices.LastIndexOf(i);
+                        if (lastIndex >= 0)
+                        {
+                            indices.RemoveAt(lastIndex);
+                        }
+                    }
+                    _deletedCount++;
+                    StopKeepingTargetAlive(handler.WeakHandler.LifetimeObject, handler.Target);
+                }
             }
         }
 
@@ -234,6 +258,14 @@ namespace WeakEvent
             return hashCode;
         }
 
+        private static int GetStrongHandlerHashCode(TStrongHandler handler)
+        {
+            var hashCode = -335093136;
+            hashCode = hashCode * -1521134295 + (handler.Target?.GetHashCode()).GetValueOrDefault();
+            hashCode = hashCode * -1521134295 + (handler.WeakHandler.Method?.GetHashCode()).GetValueOrDefault();
+            return hashCode;
+        }
+
         private void AddToIndex(Delegate singleHandler, int index)
         {
             var hashCode = GetDelegateHashCode(singleHandler);
@@ -258,10 +290,10 @@ namespace WeakEvent
 
         private void StopKeepingTargetAlive(object? lifetimeObject, object? target)
         {
-            if (lifetimeObject is null || target is null || lifetimeObject == target)
+            if (_targetLifetimes is null)
                 return;
 
-            if (_targetLifetimes is null)
+            if (lifetimeObject is null || target is null || lifetimeObject == target)
                 return;
 
             if (_targetLifetimes.TryGetValue(lifetimeObject, out var targets))
