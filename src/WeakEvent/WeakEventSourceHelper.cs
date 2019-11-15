@@ -92,7 +92,7 @@ namespace WeakEvent
                 {
                     lock (handlers)
                     {
-                        handlers.Remove(handler);
+                        handlers.RemoveFirst(handler);
                         handlers.CompactHandlerList();
                     }
                 }

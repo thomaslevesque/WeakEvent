@@ -132,27 +132,30 @@ namespace WeakEvent
             }
         }
 
-        public void Remove(TStrongHandler handler)
+        public void RemoveFirst(TStrongHandler handler)
         {
-            for (int i = 0; i < _delegates.Count; i++)
+            // Find the first occurrence of this handler
+            var hashCode = GetStrongHandlerHashCode(handler);
+            int handlerIndex = -1;
+            if (_index.TryGetValue(hashCode, out var indices) && indices.Count > 0)
             {
-                var @delegate = _delegates[i];
-                if (@delegate is {} && @delegate.IsMatch(handler))
-                {
-                    _delegates[i] = null;
-                    var hashCode = GetStrongHandlerHashCode(handler);
-                    if (_index.TryGetValue(hashCode, out var indices))
-                    {
-                        int lastIndex = indices.LastIndexOf(i);
-                        if (lastIndex >= 0)
-                        {
-                            indices.RemoveAt(lastIndex);
-                        }
-                    }
-                    _deletedCount++;
-                    StopKeepingTargetAlive(handler.WeakHandler.LifetimeObject, handler.Target);
-                }
+                handlerIndex = indices.Min();
             }
+
+            if (handlerIndex < 0)
+                return;
+
+            _delegates[handlerIndex] = null;
+
+            // Remove it from the index
+            int firstIndexOfHandlerIndex = indices.IndexOf(handlerIndex);
+            if (firstIndexOfHandlerIndex >= 0)
+            {
+                indices.RemoveAt(firstIndexOfHandlerIndex);
+            }
+            
+            _deletedCount++;
+            StopKeepingTargetAlive(handler.WeakHandler.LifetimeObject, handler.Target);
         }
 
         public void Invalidate(int index)
@@ -365,14 +368,23 @@ namespace WeakEvent
 
         private int GetIndexOfLastMatch(Delegate singleHandler, int start, int end)
         {
-            for (int i = end; i >= start; i--)
+            var hashCode = GetDelegateHashCode(singleHandler);
+            int lastIndex = -1;
+            if (_index.TryGetValue(hashCode, out var indices))
             {
-                var @delegate = _delegates[i];
-                if (@delegate is {} && @delegate.IsMatch(singleHandler))
-                    return i;
+                foreach (var index in indices)
+                {
+                    if (index < start || index > end)
+                        continue;
+                    
+                    if (index > lastIndex)
+                    {
+                        lastIndex = index;
+                    }
+                }
             }
 
-            return -1;
+            return lastIndex;
         }
     }
 }
