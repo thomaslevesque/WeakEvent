@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Reflection;
 
 namespace WeakEvent
 {
-    internal interface IStrongHandler<TOpenEventHandler>
+    internal interface IStrongHandler<TOpenEventHandler, TStrongHandler>
         where TOpenEventHandler : Delegate
+        where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
     {
-        object? LifetimeObject { get; }
         object? Target { get; }
-        TOpenEventHandler OpenHandler { get; }
-        MethodInfo Method { get; }
+        WeakDelegate<TOpenEventHandler, TStrongHandler> WeakHandler { get; }
     }
 }

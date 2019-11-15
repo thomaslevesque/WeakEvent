@@ -142,31 +142,27 @@ namespace WeakEvent
 
         internal delegate Task OpenEventHandler(object? target, object? sender, TEventArgs e);
 
-        internal struct StrongHandler : IStrongHandler<OpenEventHandler>
+        internal struct StrongHandler : IStrongHandler<OpenEventHandler, StrongHandler>
         {
-            public StrongHandler(object? lifetimeObject, object? target, OpenEventHandler openHandler, MethodInfo method)
+            public StrongHandler(object? target, WeakDelegate<OpenEventHandler, StrongHandler> weakHandler)
             {
-                LifetimeObject = lifetimeObject;
                 Target = target;
-                OpenHandler = openHandler;
-                Method = method;
+                WeakHandler = weakHandler;
             }
 
-            public object? LifetimeObject { get; }
             public object? Target { get; }
-            public OpenEventHandler OpenHandler { get; }
-            public MethodInfo Method { get; }
+            public WeakDelegate<OpenEventHandler, StrongHandler> WeakHandler { get; }
 
             public Task Invoke(object? sender, TEventArgs e)
             {
-                return OpenHandler(Target, sender, e);
+                return WeakHandler.OpenHandler(Target, sender, e);
             }
         }
 
         internal class DelegateCollection : DelegateCollectionBase<OpenEventHandler, StrongHandler>
         {
             public DelegateCollection()
-                : base((lifetimeObject, target, openHandler, method) => new StrongHandler(lifetimeObject, target, openHandler, method))
+                : base((target, weakHandler) => new StrongHandler(target, weakHandler))
             {
             }
         }

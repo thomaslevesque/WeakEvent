@@ -11,7 +11,7 @@ namespace WeakEvent
 {
     internal abstract class DelegateCollectionBase<TOpenEventHandler, TStrongHandler>
         where TOpenEventHandler : Delegate
-        where TStrongHandler : struct, IStrongHandler<TOpenEventHandler>
+        where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
     {
         #region Open handler generation and cache
 
@@ -150,7 +150,7 @@ namespace WeakEvent
                         }
                     }
                     _deletedCount++;
-                    StopKeepingTargetAlive(handler.LifetimeObject, handler.Target);
+                    StopKeepingTargetAlive(handler.WeakHandler.LifetimeObject, handler.Target);
                 }
             }
         }
@@ -262,7 +262,7 @@ namespace WeakEvent
         {
             var hashCode = -335093136;
             hashCode = hashCode * -1521134295 + (handler.Target?.GetHashCode()).GetValueOrDefault();
-            hashCode = hashCode * -1521134295 + (handler.OpenHandler.GetMethodInfo()?.GetHashCode()).GetValueOrDefault();
+            hashCode = hashCode * -1521134295 + (handler.WeakHandler.Method?.GetHashCode()).GetValueOrDefault();
             return hashCode;
         }
 

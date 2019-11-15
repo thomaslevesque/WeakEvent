@@ -10,7 +10,7 @@ namespace WeakEvent
         public static IEnumerable<TStrongHandler> GetValidHandlers<TOpenEventHandler, TStrongHandler>(
             DelegateCollectionBase<TOpenEventHandler, TStrongHandler>? handlers)
             where TOpenEventHandler : Delegate
-            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler>
+            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
         {
             if (handlers is null)
                 return Enumerable.Empty<TStrongHandler>();
@@ -44,7 +44,7 @@ namespace WeakEvent
             Delegate handler)
             where TDelegateCollection : DelegateCollectionBase<TOpenEventHandler, TStrongHandler>, new()
             where TOpenEventHandler : Delegate
-            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler>
+            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
         {
             if (handler is null)
                 throw new ArgumentNullException(nameof(handler));
@@ -62,7 +62,7 @@ namespace WeakEvent
             DelegateCollectionBase<TOpenEventHandler, TStrongHandler>? handlers,
             Delegate handler)
             where TOpenEventHandler : Delegate
-            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler>
+            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
         {
             if (handler is null)
                 throw new ArgumentNullException(nameof(handler));
@@ -84,7 +84,7 @@ namespace WeakEvent
             TStrongHandler handler,
             ExceptionHandlingFlags handlingFlags)
             where TOpenEventHandler : Delegate
-            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler>
+            where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
         {
             if ((handlingFlags & ExceptionHandlingFlags.Unsubscribe) != 0)
             {
