@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using static WeakEvent.WeakEventSourceHelper;
 
 namespace WeakEvent

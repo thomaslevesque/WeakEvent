@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 using static WeakEvent.WeakEventSourceHelper;
 
@@ -34,7 +33,7 @@ namespace WeakEvent
             var validHandlers = GetValidHandlers(_handlers);
             foreach (var handler in validHandlers)
             {
-                await handler.Invoke(sender, args);
+                await handler.Invoke(sender, args).ConfigureAwait(false);
             }
         }
 
@@ -56,7 +55,7 @@ namespace WeakEvent
             {
                 try
                 {
-                    await handler.Invoke(sender, args);
+                    await handler.Invoke(sender, args).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (exceptionHandler(ex))
                 {
@@ -82,11 +81,11 @@ namespace WeakEvent
             {
                 try
                 {
-                    await handler.Invoke(sender, args);
+                    await handler.Invoke(sender, args).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    if (!await exceptionHandler(ex))
+                    if (!await exceptionHandler(ex).ConfigureAwait(false))
                     {
                         throw;
                     }
