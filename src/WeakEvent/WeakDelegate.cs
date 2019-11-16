@@ -5,10 +5,12 @@ namespace WeakEvent
 {
     internal class WeakDelegate<TOpenEventHandler, TStrongHandler>
         where TOpenEventHandler : Delegate
-        where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
+        where TStrongHandler : struct
     {
         private readonly WeakReference? _weakLifetimeObject;
         private readonly WeakReference? _weakTarget;
+        private readonly MethodInfo _method;
+        private readonly TOpenEventHandler _openHandler;
         private readonly StrongHandlerFactory<TOpenEventHandler, TStrongHandler> _createStrongHandler;
 
         public WeakDelegate(
@@ -19,16 +21,13 @@ namespace WeakEvent
         {
             _weakLifetimeObject = lifetimeObject is {} ? new WeakReference(lifetimeObject) : null;
             _weakTarget = handler.Target is {} ? new WeakReference(handler.Target) : null;
-            Method = handler.GetMethodInfo();
-            OpenHandler = openHandler;
+            _method = handler.GetMethodInfo();
+            _openHandler = openHandler;
             _createStrongHandler = createStrongHandler;
         }
 
         public object? LifetimeObject => _weakLifetimeObject?.Target;
         public bool IsAlive => _weakTarget?.IsAlive ?? true;
-
-        public MethodInfo Method { get; }
-        public TOpenEventHandler OpenHandler { get; }
 
         public TStrongHandler? TryGetStrongHandler()
         {
@@ -40,19 +39,13 @@ namespace WeakEvent
                     return null;
             }
 
-            return _createStrongHandler(target, this);
+            return _createStrongHandler(target, _openHandler);
         }
 
         public bool IsMatch(Delegate handler)
         {
             return ReferenceEquals(handler.Target, _weakTarget?.Target)
-                    && handler.GetMethodInfo().Equals(Method);
-        }
-
-        public bool IsMatch(TStrongHandler handler)
-        {
-            return ReferenceEquals(handler.Target, _weakTarget?.Target)
-                    && handler.WeakHandler.Method.Equals(Method);
+                    && handler.GetMethodInfo().Equals(_method);
         }
     }
 }

@@ -44,10 +44,11 @@ namespace WeakEvent
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="args">An object that contains the event data.</param>
-        /// <param name="exceptionHandler">A delegate that processes exceptions thrown by individual handlers.</param>
+        /// <param name="exceptionHandler">A delegate that handles exceptions thrown by individual handlers.
+        /// Return <c>true</c> to indicate that the exception was handled.</param>
         /// <remarks>The handlers are invoked one after the other, in the order they were subscribed in.
         /// Each handler is awaited before invoking the next one.</remarks>
-        public async Task RaiseAsync(object? sender, TEventArgs args, Func<Exception, ExceptionHandlingFlags> exceptionHandler)
+        public async Task RaiseAsync(object? sender, TEventArgs args, Func<Exception, bool> exceptionHandler)
         {
             if (exceptionHandler is null) throw new ArgumentNullException(nameof(exceptionHandler));
             var validHandlers = GetValidHandlers(_handlers);
@@ -57,7 +58,7 @@ namespace WeakEvent
                 {
                     await handler.Invoke(sender, args);
                 }
-                catch (Exception ex) when (HandleException(_handlers, handler, exceptionHandler(ex)))
+                catch (Exception ex) when (exceptionHandler(ex))
                 {
                 }
             }
@@ -69,10 +70,11 @@ namespace WeakEvent
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="args">An object that contains the event data.</param>
-        /// <param name="exceptionHandler">A delegate that processes exceptions thrown by individual handlers.</param>
+        /// <param name="exceptionHandler">A delegate that handles exceptions thrown by individual handlers.
+        /// Return <c>true</c> to indicate that the exception was handled.</param>
         /// <remarks>The handlers are invoked one after the other, in the order they were subscribed in.
         /// Each handler is awaited before invoking the next one.</remarks>
-        public async Task RaiseAsync(object? sender, TEventArgs args, Func<Exception, Task<ExceptionHandlingFlags>> exceptionHandler)
+        public async Task RaiseAsync(object? sender, TEventArgs args, Func<Exception, Task<bool>> exceptionHandler)
         {
             if (exceptionHandler is null) throw new ArgumentNullException(nameof(exceptionHandler));
             var validHandlers = GetValidHandlers(_handlers);
@@ -84,8 +86,7 @@ namespace WeakEvent
                 }
                 catch (Exception ex)
                 {
-                    var flags = await exceptionHandler(ex);
-                    if (!HandleException(_handlers, handler, flags))
+                    if (!await exceptionHandler(ex))
                     {
                         throw;
                     }
@@ -142,27 +143,27 @@ namespace WeakEvent
 
         internal delegate Task OpenEventHandler(object? target, object? sender, TEventArgs e);
 
-        internal struct StrongHandler : IStrongHandler<OpenEventHandler, StrongHandler>
+        internal struct StrongHandler
         {
-            public StrongHandler(object? target, WeakDelegate<OpenEventHandler, StrongHandler> weakHandler)
-            {
-                Target = target;
-                WeakHandler = weakHandler;
-            }
+            private readonly object? _target;
+            private readonly OpenEventHandler _openHandler;
 
-            public object? Target { get; }
-            public WeakDelegate<OpenEventHandler, StrongHandler> WeakHandler { get; }
+            public StrongHandler(object? target, OpenEventHandler openHandler)
+            {
+                _openHandler = openHandler;
+                _target = target;
+            }
 
             public Task Invoke(object? sender, TEventArgs e)
             {
-                return WeakHandler.OpenHandler(Target, sender, e);
+                return _openHandler(_target, sender, e);
             }
         }
 
         internal class DelegateCollection : DelegateCollectionBase<OpenEventHandler, StrongHandler>
         {
             public DelegateCollection()
-                : base((target, weakHandler) => new StrongHandler(target, weakHandler))
+                : base((target, openHandler) => new StrongHandler(target, openHandler))
             {
             }
         }

@@ -36,9 +36,10 @@ namespace WeakEvent
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="args">An object that contains the event data.</param>
-        /// <param name="exceptionHandler">A delegate that processes exceptions thrown by individual handlers.</param>
+        /// <param name="exceptionHandler">A delegate that handles exceptions thrown by individual handlers.
+        /// Return <c>true</c> to indicate that the exception was handled.</param>
         /// <remarks>The handlers are invoked one after the other, in the order they were subscribed in.</remarks>
-        public void Raise(object? sender, TEventArgs args, Func<Exception, ExceptionHandlingFlags> exceptionHandler)
+        public void Raise(object? sender, TEventArgs args, Func<Exception, bool> exceptionHandler)
         {
             if (exceptionHandler is null) throw new ArgumentNullException(nameof(exceptionHandler));
             var validHandlers = GetValidHandlers(_handlers);
@@ -48,7 +49,7 @@ namespace WeakEvent
                 {
                     handler.Invoke(sender, args);
                 }
-                catch (Exception ex) when (HandleException(_handlers, handler, exceptionHandler(ex)))
+                catch (Exception ex) when (exceptionHandler(ex))
                 {
                 }
             }
@@ -103,27 +104,27 @@ namespace WeakEvent
 
         internal delegate void OpenEventHandler(object? target, object? sender, TEventArgs e);
 
-        internal struct StrongHandler : IStrongHandler<OpenEventHandler, StrongHandler>
+        internal struct StrongHandler
         {
-            public StrongHandler(object? target, WeakDelegate<OpenEventHandler, StrongHandler> weakHandler)
-            {
-                Target = target;
-                WeakHandler = weakHandler;
-            }
+            private readonly object? _target;
+            private readonly OpenEventHandler _openHandler;
 
-            public object? Target { get; }
-            public WeakDelegate<OpenEventHandler, StrongHandler> WeakHandler { get; }
+            public StrongHandler(object? target, OpenEventHandler openHandler)
+            {
+                _target = target;
+                _openHandler = openHandler;
+            }
 
             public void Invoke(object? sender, TEventArgs e)
             {
-                WeakHandler.OpenHandler(Target, sender, e);
+                _openHandler(_target, sender, e);
             }
         }
 
         internal class DelegateCollection : DelegateCollectionBase<OpenEventHandler, StrongHandler>
         {
             public DelegateCollection()
-                : base((target, weakHandler) => new StrongHandler(target, weakHandler))
+                : base((target, openHandler) => new StrongHandler(target, openHandler))
             {
             }
         }

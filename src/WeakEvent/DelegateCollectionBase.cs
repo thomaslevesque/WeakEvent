@@ -11,7 +11,7 @@ namespace WeakEvent
 {
     internal abstract class DelegateCollectionBase<TOpenEventHandler, TStrongHandler>
         where TOpenEventHandler : Delegate
-        where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>
+        where TStrongHandler : struct
     {
         #region Open handler generation and cache
 
@@ -132,32 +132,6 @@ namespace WeakEvent
             }
         }
 
-        public void RemoveFirst(TStrongHandler handler)
-        {
-            // Find the first occurrence of this handler
-            var hashCode = GetStrongHandlerHashCode(handler);
-            int handlerIndex = -1;
-            if (_index.TryGetValue(hashCode, out var indices) && indices.Count > 0)
-            {
-                handlerIndex = indices.Min();
-            }
-
-            if (handlerIndex < 0)
-                return;
-
-            _delegates[handlerIndex] = null;
-
-            // Remove it from the index
-            int firstIndexOfHandlerIndex = indices.IndexOf(handlerIndex);
-            if (firstIndexOfHandlerIndex >= 0)
-            {
-                indices.RemoveAt(firstIndexOfHandlerIndex);
-            }
-            
-            _deletedCount++;
-            StopKeepingTargetAlive(handler.WeakHandler.LifetimeObject, handler.Target);
-        }
-
         public void Invalidate(int index)
         {
             _delegates[index] = null;
@@ -258,14 +232,6 @@ namespace WeakEvent
             var hashCode = -335093136;
             hashCode = hashCode * -1521134295 + (handler?.Target?.GetHashCode()).GetValueOrDefault();
             hashCode = hashCode * -1521134295 + (handler?.GetMethodInfo()?.GetHashCode()).GetValueOrDefault();
-            return hashCode;
-        }
-
-        private static int GetStrongHandlerHashCode(TStrongHandler handler)
-        {
-            var hashCode = -335093136;
-            hashCode = hashCode * -1521134295 + (handler.Target?.GetHashCode()).GetValueOrDefault();
-            hashCode = hashCode * -1521134295 + (handler.WeakHandler.Method?.GetHashCode()).GetValueOrDefault();
             return hashCode;
         }
 
@@ -376,7 +342,7 @@ namespace WeakEvent
                 {
                     if (index < start || index > end)
                         continue;
-                    
+
                     if (index > lastIndex)
                     {
                         lastIndex = index;

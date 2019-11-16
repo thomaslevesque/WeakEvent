@@ -2,7 +2,7 @@
 
 namespace WeakEvent
 {
-    internal delegate TStrongHandler StrongHandlerFactory<TOpenEventHandler, TStrongHandler>(object? target, WeakDelegate<TOpenEventHandler, TStrongHandler> weakHandler)
+    internal delegate TStrongHandler StrongHandlerFactory<TOpenEventHandler, TStrongHandler>(object? target, TOpenEventHandler openHandler)
         where TOpenEventHandler : Delegate
-        where TStrongHandler : struct, IStrongHandler<TOpenEventHandler, TStrongHandler>;
+        where TStrongHandler : struct;
 }

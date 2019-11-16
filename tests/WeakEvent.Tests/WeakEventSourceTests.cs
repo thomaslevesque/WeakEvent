@@ -397,7 +397,7 @@ namespace WeakEvent.Tests
         }
 
         [Fact]
-        public void Exception_Is_Not_Swallowed_And_Handler_Is_Not_Unsubscribed_If_ExceptionHandler_Returns_None()
+        public void Exception_Is_Not_Swallowed_If_ExceptionHandler_Returns_False()
         {
             var source = new WeakEventSource<EventArgs>();
             bool throwingHandlerCalled = false;
@@ -409,13 +409,6 @@ namespace WeakEvent.Tests
             throwingHandlerCalled.Should().BeTrue();
             nonThrowingHandlerCalled.Should().BeFalse();
 
-            // Retry, the throwing handler should still be there
-            throwingHandlerCalled = false;
-            nonThrowingHandlerCalled = false;
-            raise.Should().Throw<Exception>().WithMessage("Oops");
-            throwingHandlerCalled.Should().BeTrue();
-            nonThrowingHandlerCalled.Should().BeFalse();
-
             void ThrowingHandler(object sender, EventArgs e)
             {
                 throwingHandlerCalled = true;
@@ -427,11 +420,11 @@ namespace WeakEvent.Tests
                 nonThrowingHandlerCalled = true;
             }
 
-            ExceptionHandlingFlags ExceptionHandler(Exception ex) => ExceptionHandlingFlags.None;
+            static bool ExceptionHandler(Exception _) => false;
         }
 
         [Fact]
-        public void Exception_Is_Swallowed_If_ExceptionHandler_Returns_Handled()
+        public void Exception_Is_Swallowed_If_ExceptionHandler_Returns_True()
         {
             var source = new WeakEventSource<EventArgs>();
             bool throwingHandlerCalled = false;
@@ -444,13 +437,6 @@ namespace WeakEvent.Tests
             throwingHandlerCalled.Should().BeTrue();
             nonThrowingHandlerCalled.Should().BeTrue();
 
-            // Retry, the throwing handler should still be there
-            throwingHandlerCalled = false;
-            nonThrowingHandlerCalled = false;
-            raise.Should().NotThrow();
-            throwingHandlerCalled.Should().BeTrue();
-            nonThrowingHandlerCalled.Should().BeTrue();
-
             void ThrowingHandler(object sender, EventArgs e)
             {
                 throwingHandlerCalled = true;
@@ -462,75 +448,7 @@ namespace WeakEvent.Tests
                 nonThrowingHandlerCalled = true;
             }
 
-            ExceptionHandlingFlags ExceptionHandler(Exception ex) => ExceptionHandlingFlags.Handled;
-        }
-
-        [Fact]
-        public void Handler_Is_Unsubscribed_If_ExceptionHandler_Returns_Unsubscribe()
-        {
-            var source = new WeakEventSource<EventArgs>();
-            bool throwingHandlerCalled = false;
-            bool nonThrowingHandlerCalled = false;
-            source.Subscribe(ThrowingHandler);
-            source.Subscribe(NonThrowingHandler);
-            Action raise = () => source.Raise(this, EventArgs.Empty, ExceptionHandler);
-            raise.Should().Throw<Exception>().WithMessage("Oops");
-            throwingHandlerCalled.Should().BeTrue();
-            nonThrowingHandlerCalled.Should().BeFalse();
-
-            // Retry, now the throwing handler should be removed
-            throwingHandlerCalled = false;
-            nonThrowingHandlerCalled = false;
-            raise.Should().NotThrow();
-            throwingHandlerCalled.Should().BeFalse();
-            nonThrowingHandlerCalled.Should().BeTrue();
-
-            void ThrowingHandler(object sender, EventArgs e)
-            {
-                throwingHandlerCalled = true;
-                throw new Exception("Oops");
-            }
-
-            void NonThrowingHandler(object sender, EventArgs e)
-            {
-                nonThrowingHandlerCalled = true;
-            }
-
-            ExceptionHandlingFlags ExceptionHandler(Exception ex) => ExceptionHandlingFlags.Unsubscribe;
-        }
-
-        [Fact]
-        public void Exception_Is_Swallowed_And_Handler_Is_Unsubscribed_If_ExceptionHandler_Returns_UnsubscribeHandled()
-        {
-            var source = new WeakEventSource<EventArgs>();
-            bool throwingHandlerCalled = false;
-            bool nonThrowingHandlerCalled = false;
-            source.Subscribe(ThrowingHandler);
-            source.Subscribe(NonThrowingHandler);
-            Action raise = () => source.Raise(this, EventArgs.Empty, ExceptionHandler);
-            raise.Should().NotThrow();
-            throwingHandlerCalled.Should().BeTrue();
-            nonThrowingHandlerCalled.Should().BeTrue();
-
-            // Retry, now the throwing handler should be removed
-            throwingHandlerCalled = false;
-            nonThrowingHandlerCalled = false;
-            raise.Should().NotThrow();
-            throwingHandlerCalled.Should().BeFalse();
-            nonThrowingHandlerCalled.Should().BeTrue();
-
-            void ThrowingHandler(object sender, EventArgs e)
-            {
-                throwingHandlerCalled = true;
-                throw new Exception("Oops");
-            }
-
-            void NonThrowingHandler(object sender, EventArgs e)
-            {
-                nonThrowingHandlerCalled = true;
-            }
-
-            ExceptionHandlingFlags ExceptionHandler(Exception ex) => ExceptionHandlingFlags.Unsubscribe | ExceptionHandlingFlags.Handled;
+            static bool ExceptionHandler(Exception _) => true;
         }
 
         #region Test subjects
