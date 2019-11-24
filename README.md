@@ -45,6 +45,10 @@ private void OnMyEvent(MyEventArgs e)
 That's it, you have a weak event! Client code can subscribe to it as usual, this is completely transparent from the subscriber's
 point of view.
 
+### Special case: anonymous method handlers
+
+If you're subscribing to the event with an anonymous method (e.g. a lambda expression), make sure to keep a reference to the handler, otherwise it will be collected too soon. Alternatively, you can use the overload of `Subscribe` that accepts a lifetime object; this will cause the handler to stay alive as long as the lifetime object is alive (of course, in this case you can't use the event syntax; the event publisher will need to expose a specific method).
+
 ## How does it work
 
 A delegate is made of two things:
